@@ -1,11 +1,12 @@
 # Stimmti
+
 > An interactive live-survey tool best used for presentations of any kind
 
 ## Setting up the dev environment
 
 ```bash
 # Setting up a development SQL Database
-docker compose -f devdb.compose.yaml up -d
+sudo apt  install dotnet-host-10.0
 
 # Starting the Backend
 cd Backend

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { themeManager } from '$lib/Theme.svelte';
 	import { Sun, Moon, Menu } from '@lucide/svelte';
+	import ThemeToggle from './ThemeToggle.svelte';
 </script>
 
 <div class="navbar mb-4 bg-base-100 shadow-sm">
@@ -24,18 +25,7 @@
 	</div>
 	<div class="navbar-end">
 		<div class="flex items-center gap-2">
-			<label class="toggle text-base-content">
-				<input
-					type="checkbox"
-					class="theme-controller"
-					checked={themeManager.theme === 'dark'}
-					onchange={() => themeManager.toggle()}
-				/>
-
-				<Sun size={16} />
-
-				<Moon size={16} />
-			</label>
+			<ThemeToggle />
 
 			<div class="dropdown dropdown-end">
 				<div tabindex="0" role="button" class="btn avatar btn-circle btn-ghost">

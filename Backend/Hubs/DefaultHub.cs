@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Backend.Hubs;
 
-public class PollHub : Hub<IPollClient>
+public class DefaultHub : Hub
 {
     public async Task JoinRoom(string roomId)
     {

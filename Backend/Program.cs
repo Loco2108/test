@@ -1,4 +1,6 @@
 using Backend.Hubs;
+using Backend.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +28,21 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<StimmtiDbContext>()
+.AddDefaultTokenProviders();
+
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -40,8 +56,11 @@ app.UseWebSockets();
 app.UseAuthorization();
 app.UseCors();
 app.MapControllers();
+app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapHub<PollHub>("/pollhub");
+app.MapHub<DefaultHub>("/pollhub");
 
 using (var scope = app.Services.CreateScope())
 {

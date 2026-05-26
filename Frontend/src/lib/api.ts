@@ -10,18 +10,32 @@
  * ---------------------------------------------------------------
  */
 
-export interface Poll {
-  /** @format uuid */
-  id?: string;
+export interface UserLoginDto {
   /** @minLength 1 */
-  question: string;
-  /** @format date-time */
-  createdAt?: string;
+  password: string;
+  /**
+   * @format email
+   * @minLength 1
+   * @maxLength 100
+   */
+  email: string;
+  staySignedIn?: boolean;
 }
 
-export interface PollCreateDto {
+export interface UserRegisterDto {
+  /**
+   * @minLength 1
+   * @maxLength 50
+   */
+  username: string;
   /** @minLength 1 */
-  question: string;
+  password: string;
+  /**
+   * @format email
+   * @minLength 1
+   * @maxLength 100
+   */
+  email: string;
 }
 
 import type {
@@ -210,32 +224,46 @@ export class Api<
     /**
      * No description
      *
-     * @tags Test
-     * @name V1TestList
-     * @request GET:/api/v1/Test
+     * @tags User
+     * @name V1UserRegisterCreate
+     * @request POST:/api/v1/User/register
      */
-    v1TestList: (params: RequestParams = {}) =>
-      this.request<Poll[], any>({
-        path: `/api/v1/Test`,
-        method: "GET",
-        format: "json",
+    v1UserRegisterCreate: (data: UserRegisterDto, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/User/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 
     /**
      * No description
      *
-     * @tags Test
-     * @name V1TestCreate
-     * @request POST:/api/v1/Test
+     * @tags User
+     * @name V1UserLoginCreate
+     * @request POST:/api/v1/User/login
      */
-    v1TestCreate: (data: PollCreateDto, params: RequestParams = {}) =>
-      this.request<Poll, any>({
-        path: `/api/v1/Test`,
+    v1UserLoginCreate: (data: UserLoginDto, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/User/login`,
         method: "POST",
         body: data,
         type: ContentType.Json,
-        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserLogoutCreate
+     * @request POST:/api/v1/User/logout
+     */
+    v1UserLogoutCreate: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/User/logout`,
+        method: "POST",
         ...params,
       }),
   };

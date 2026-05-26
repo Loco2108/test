@@ -4,11 +4,17 @@
 	import { onMount } from 'svelte';
 	import { themeManager } from '$lib/Theme.svelte';
 	import { goto } from '$app/navigation';
+	import { authStore } from '$lib/authStore.svelte';
 
 	onMount(() => {
 		themeManager.init();
 
-		goto('./app');
+		if (authStore.isLoggedIn) {
+			goto('./app');
+			return;
+		}
+
+		goto('./register');
 	});
 
 	let { children } = $props();
