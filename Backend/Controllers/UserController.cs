@@ -1,5 +1,6 @@
 using Backend.Dto;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -101,5 +102,23 @@ public class UserController : ControllerBase
         }
 
         return Ok(new { message = "E-Mail is available" });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult<UserAuthDto>> GetCurrentUser()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        var userData = new UserAuthDto
+        {
+            Id = user.Id,
+            Username = user.UserName!,
+            Email = user.Email!,
+            ProfilePictureUrl = user.ProfilePictureUrl
+        };
+
+        return Ok(userData);
     }
 }

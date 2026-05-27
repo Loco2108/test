@@ -3,21 +3,19 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { themeManager } from '$lib/Theme.svelte';
-	import { goto } from '$app/navigation';
-	import { authStore } from '$lib/authStore.svelte';
+	import { loginUser } from '$lib/authStore.svelte';
+
+	let { children, data } = $props();
 
 	onMount(() => {
 		themeManager.init();
-
-		if (authStore.isLoggedIn) {
-			goto('./app');
-			return;
-		}
-
-		goto('./register');
 	});
 
-	let { children } = $props();
+	$effect.pre(() => {
+		if (!data.user) return;
+
+		loginUser(data.user);
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>

@@ -10,32 +10,24 @@
  * ---------------------------------------------------------------
  */
 
+export interface UserAuthDto {
+  /** @format uuid */
+  id?: string;
+  username?: string | null;
+  email?: string | null;
+  profilePictureUrl?: string | null;
+}
+
 export interface UserLoginDto {
-  /** @minLength 1 */
-  password: string;
-  /**
-   * @format email
-   * @minLength 1
-   * @maxLength 100
-   */
-  email: string;
+  password?: string | null;
+  email?: string | null;
   staySignedIn?: boolean;
 }
 
 export interface UserRegisterDto {
-  /**
-   * @minLength 1
-   * @maxLength 50
-   */
-  username: string;
-  /** @minLength 1 */
-  password: string;
-  /**
-   * @format email
-   * @minLength 1
-   * @maxLength 100
-   */
-  email: string;
+  username?: string | null;
+  password?: string | null;
+  email?: string | null;
 }
 
 import type {
@@ -264,6 +256,61 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/User/logout`,
         method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserCheckUsernameCreate
+     * @request POST:/api/v1/User/checkUsername
+     */
+    v1UserCheckUsernameCreate: (
+      query?: {
+        username?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/User/checkUsername`,
+        method: "POST",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserCheckEmailCreate
+     * @request POST:/api/v1/User/checkEmail
+     */
+    v1UserCheckEmailCreate: (
+      query?: {
+        email?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/User/checkEmail`,
+        method: "POST",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserMeList
+     * @request GET:/api/v1/User/me
+     */
+    v1UserMeList: (params: RequestParams = {}) =>
+      this.request<UserAuthDto, any>({
+        path: `/api/v1/User/me`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
   };

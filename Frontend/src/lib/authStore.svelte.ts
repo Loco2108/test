@@ -1,18 +1,21 @@
+import type { UserAuthDto } from './api';
+
 type AuthData = {
-    isLoggedIn: boolean;
-    username: string | null;
-    profilePictureUrl: string | null;
-}
+	isLoggedIn: boolean;
+	user: UserAuthDto | null;
+};
 
 export const authStore = $state<AuthData>({
-    isLoggedIn: false,
-    username: null,
-    profilePictureUrl: null,
+	isLoggedIn: false,
+	user: null,
 });
 
 export function logoutUser() {
-    authStore.isLoggedIn = false;
-    authStore.username = null;
-    authStore.profilePictureUrl = null;
+	authStore.isLoggedIn = false;
+	authStore.user = null;
 }
 
+export function loginUser(userData: UserAuthDto) {
+	authStore.isLoggedIn = true;
+	authStore.user = userData;
+}

@@ -1,62 +1,300 @@
 <script lang="ts">
-	import { Mail } from '@lucide/svelte';
+	import { apiClient } from '$lib/apiClient';
+	import { Eye, Key, LoaderCircle, Mail, User } from '@lucide/svelte';
+	import type { ClassValue } from 'svelte/elements';
 
-	const steps = [
-		{ label: 'E-Mail', validInput: false },
-		{ label: 'Username', validInput: false },
-		{ label: 'Password', validInput: false },
-	];
+	type Props = {
+		onregisterfinish?: () => void;
+		class?: ClassValue;
+		style?: string;
+	};
 
-	let state = $state(0);
-	let isAtFirstStep = $derived(state === 0);
-	let isAtLastStep = $derived(state === steps.length - 1);
+	let { onregisterfinish, class: classes, style }: Props = $props();
+
+	const steps = ['E-Mail', 'Username', 'Password'];
+	const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+	let stage = $state(0);
+	let isAtFirstStep = $derived(stage === 0);
+	let isAtLastStep = $derived(stage === steps.length - 1);
+
+	let formRef = $state<HTMLFormElement>();
+
+	let email = $state('');
+	let username = $state('');
+	let password = $state('');
+	let passwordRep = $state('');
+
+	let emailError = $state<string | null>(null);
+	let emailSuccess = $state<string | null>(null);
+	let isCheckingEmail = $state(false);
+
+	let usernameError = $state<string | null>(null);
+	let usernameSuccess = $state<string | null>(null);
+	let isCheckingUsername = $state(false);
+
+	let emailTimeout: ReturnType<typeof setTimeout> | undefined;
+	let usernameTimeout: ReturnType<typeof setTimeout> | undefined;
+
+	let passwordVisible = $state(false);
+
+	let isRegistering = $state(false);
+
+	function handleEmailInput() {
+		emailError = null;
+		emailSuccess = null;
+
+		if (!checkForm()) {
+			return;
+		}
+
+		clearTimeout(emailTimeout);
+		isCheckingEmail = true;
+
+		emailTimeout = setTimeout(async () => {
+			await apiClient.api
+				.v1UserCheckEmailCreate({ email })
+				.then((result) => {
+					if (result.status === 200) {
+						emailSuccess = 'E-Mail is available';
+					}
+				})
+				.catch(() => {
+					emailError = 'This E-Mail is already registered';
+				});
+
+			isCheckingEmail = false;
+		}, 500);
+	}
+
+	function handleUsernameInput() {
+		usernameError = null;
+		usernameSuccess = null;
+
+		if (!username) {
+			usernameError = 'Please enter a Username';
+			return;
+		}
+
+		clearTimeout(usernameTimeout);
+		isCheckingUsername = true;
+
+		usernameTimeout = setTimeout(async () => {
+			await apiClient.api
+				.v1UserCheckUsernameCreate({ username })
+				.then((result) => {
+					if (result.status === 200) {
+						usernameSuccess = 'Username available';
+					}
+				})
+				.catch(() => {
+					usernameError = 'This Username already exists';
+				});
+
+			isCheckingUsername = false;
+		}, 500);
+	}
+
+	let isCurrentStepValid = $derived.by(() => {
+		if (stage === 0)
+			return email.length > 0 && checkForm() && emailError === null && !isCheckingEmail;
+		if (stage === 1)
+			return (
+				username.length > 0 && checkForm() && usernameError === null && !isCheckingUsername
+			);
+		if (stage === 2)
+			return password.length > 0 && passwordRegex.test(password) && password === passwordRep;
+
+		return false;
+	});
+
+	function checkForm(): boolean {
+		if (!formRef) return false;
+
+		return formRef.checkValidity();
+	}
 
 	function next() {
-		if (state < steps.length - 1) {
-			state++;
+		if (stage < steps.length - 1 && isCurrentStepValid) {
+			stage++;
 		}
 	}
 
 	function prev() {
-		if (state > 0) {
-			state--;
+		if (stage > 0) {
+			stage--;
 		}
+	}
+
+	async function submitForm() {
+		isRegistering = true;
+
+		await apiClient.api
+			.v1UserRegisterCreate({
+				email,
+				username,
+				password,
+			})
+			.then((result) => {
+				if (result.status === 200) {
+					onregisterfinish?.();
+				}
+			})
+			.catch(() => {});
+
+		isRegistering = false;
 	}
 </script>
 
-<div class="card w-96 bg-base-100 shadow-sm card-lg">
+<div class={['card w-96 bg-base-100 shadow-sm card-lg', classes]} {style}>
 	<div class="card-body">
 		<h2 class="card-title">Register</h2>
 
-		<ul class="steps">
+		<ul class="steps mb-4">
 			{#each steps as step, index}
-				<li class={['step', state >= index && 'step-primary']}>
-					{index === state ? step.label : ''}
+				<li class={['step', stage >= index && 'step-primary']}>
+					{index === stage ? step : ''}
 				</li>
 			{/each}
 		</ul>
 
-		{#if state === 0}
-			<label class="validator input">
-				<Mail />
-				<input type="email" placeholder="user@mail.com" required />
-			</label>
-		{:else if state === 1}{:else if state === 2}{/if}
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				if (isAtLastStep) {
+					submitForm();
+				} else {
+					next();
+				}
+			}}
+			bind:this={formRef}>
+			{#if stage === 0}
+				<label class={['validator input mb-2', emailError && 'input-error']}>
+					<Mail class="opacity-50" />
+					<input
+						type="email"
+						placeholder="user@mail.com"
+						bind:value={email}
+						oninput={handleEmailInput}
+						required />
+				</label>
 
-		<div class="card-actions justify-end">
-			{#if !isAtFirstStep}
-				<button class="btn" onclick={prev}>Previous</button>
+				{#if isCheckingEmail}
+					<LoaderCircle class="animate-spin" />
+				{:else if emailError}
+					<div class="inline-grid *:[grid-area:1/1]">
+						<div class="status status-error"></div>
+					</div>
+					{emailError}
+				{:else if emailSuccess}
+					<div class="inline-grid *:[grid-area:1/1]">
+						<div class="status status-success"></div>
+					</div>
+					{emailSuccess}
+				{/if}
+			{:else if stage === 1}
+				<label class={['validator input mb-2', usernameError && 'input-error']}>
+					<User class="opacity-50" />
+					<input
+						type="text"
+						placeholder="Username"
+						bind:value={username}
+						oninput={handleUsernameInput}
+						required />
+				</label>
+
+				{#if isCheckingUsername}
+					<LoaderCircle class="animate-spin" />
+				{:else if usernameError}
+					<div class="inline-grid *:[grid-area:1/1]">
+						<div class="status status-error"></div>
+					</div>
+					{usernameError}
+				{:else if usernameSuccess}
+					<div class="inline-grid *:[grid-area:1/1]">
+						<div class="status status-success"></div>
+					</div>
+					{usernameSuccess}
+				{/if}
+			{:else if stage === 2}
+				<div class="join w-full">
+					<div class="w-full">
+						<label class="validator input join-item mb-1">
+							<Key class="opacity-50" />
+							<input
+								type={passwordVisible ? 'text' : 'password'}
+								placeholder="Password"
+								minlength="8"
+								pattern={'^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$'}
+								title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+								bind:value={password}
+								required />
+						</label>
+						<p class="validator-hint mb-2 hidden">
+							Must be more than 8 characters, including
+							<br />At least one number <br />At least one lowercase letter <br />At
+							least one uppercase letter
+						</p>
+					</div>
+
+					<button
+						type="button"
+						class="btn join-item btn-neutral"
+						aria-label="Show Password"
+						onclick={() => (passwordVisible = !passwordVisible)}>
+						<Eye />
+					</button>
+				</div>
+
+				<label
+					class={[
+						'validator input',
+						passwordRep && password !== passwordRep && 'input-error',
+					]}>
+					<Key class="opacity-50" />
+					<input
+						type="password"
+						placeholder="Repeat Password"
+						bind:value={passwordRep}
+						required />
+				</label>
 			{/if}
 
-			{#if !isAtLastStep}
-				<button class="btn btn-primary" onclick={next} disabled={!steps[state].validInput}
-					>Next</button
-				>
-			{/if}
+			<div class="mt-4 flex justify-end gap-2">
+				{#if !isAtFirstStep}
+					<button class="btn" onclick={prev}>Previous</button>
+				{/if}
 
-			{#if isAtLastStep}
-				<button class="btn btn-primary" onclick={next}>Register</button>
-			{/if}
+				{#if !isAtLastStep}
+					<button
+						class="btn btn-primary"
+						type="submit"
+						onclick={next}
+						disabled={!isCurrentStepValid}>
+						Next
+					</button>
+				{/if}
+
+				{#if isAtLastStep}
+					<button
+						type="submit"
+						class="btn btn-primary"
+						onclick={submitForm}
+						disabled={!isCurrentStepValid || isRegistering}>
+						{#if isRegistering}
+							<LoaderCircle class="animate-spin" />
+						{/if}
+						Register
+					</button>
+				{/if}
+			</div>
+		</form>
+
+		<div class="mt-2">
+			<p>
+				Already have an Account?
+				<a class="underline" href="/login">Login</a>
+			</p>
 		</div>
 	</div>
 </div>

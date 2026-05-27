@@ -53,13 +53,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseWebSockets();
-app.UseAuthorization();
 app.UseCors();
-app.MapControllers();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapHub<DefaultHub>("/pollhub");
 
 using (var scope = app.Services.CreateScope())

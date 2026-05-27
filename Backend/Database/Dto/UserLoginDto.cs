@@ -1,16 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Backend.Dto;
 
 public class UserLoginDto
 {
-    [Required]
-    public required string Password { get; set; }
-
-    [Required]
-    [EmailAddress]
-    [MaxLength(100)]
-    public required string Email { get; set; }
-
+    public string Password { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public bool StaySignedIn { get; set; } = false;
 }
