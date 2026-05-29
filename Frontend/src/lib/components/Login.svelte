@@ -65,11 +65,6 @@
 							bind:value={password}
 							required />
 					</label>
-					<p class="validator-hint mb-2 hidden">
-						Must be more than 8 characters, including
-						<br />At least one number <br />At least one lowercase letter <br />At least
-						one uppercase letter
-					</p>
 				</div>
 
 				<button
@@ -100,7 +95,7 @@
 
 		<p>
 			Don't have an Account?
-			<a class="underline" href="/register">Register</a>
+			<a class="link link-primary" href="/register">Register</a>
 		</p>
 	</div>
 </div>
