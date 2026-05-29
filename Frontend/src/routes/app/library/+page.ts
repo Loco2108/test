@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
-const validViews = ['surveys', 'sessions', 'templates'] as const;
+const validViews = ['surveys', 'sessions', 'templates', 'archive'] as const;
 type View = (typeof validViews)[number];
 
 export const load: PageLoad = ({ url }) => {

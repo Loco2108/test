@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { scrollIntoViewOnMount } from '$lib/actions/scrollaction.js';
+	import Pagination from '$lib/components/Pagination.svelte';
 	import {
+		Archive,
 		ChartNoAxesCombined,
 		ChevronRight,
 		Folder,
@@ -16,6 +18,7 @@
 		{ label: 'Surveys', icon: Form },
 		{ label: 'Sessions', icon: ChartNoAxesCombined },
 		{ label: 'Templates', icon: Plus },
+		{ label: 'Archive', icon: Archive },
 	];
 
 	type Survey = { type: 'survey'; title: string };
@@ -72,7 +75,7 @@
 				{#each menuTabs as tab}
 					<li class={activeViewId === tab.label.toLowerCase() ? 'menu-active' : ''}>
 						<a href="?view={tab.label.toLowerCase()}">
-							<tab.icon />
+							<tab.icon size={16} />
 							{tab.label}
 						</a>
 					</li>
@@ -136,16 +139,15 @@
 					{/each}
 				</ul>
 
-				<div class="join">
-					<button class="btn btn-active join-item btn-sm">1</button>
-					<button class="btn join-item btn-sm">2</button>
-					<button class="btn join-item btn-sm">3</button>
-					<button class="btn join-item btn-sm">4</button>
-				</div>
+				<div class="divider"></div>
+
+				<Pagination numPages={5} currentPage={1} />
 			{:else if activeViewId === 'sessions'}
 				<p>Here will be the Sessions</p>
 			{:else if activeViewId === 'templates'}
 				<p>Here will be the Templates</p>
+			{:else if activeViewId === 'archive'}
+				<p>Here will be the Archive</p>
 			{/if}
 		</div>
 	</div>
@@ -169,7 +171,8 @@
 				</div>
 
 				<div class="my-16">
-					Here will be survey settings with an option to open a bigger editor in a modal.
+					Here will be survey settings with an option to open a bigger editor somewhere
+					like /app/surveys/{'{surveyId}'}.
 				</div>
 
 				<div class="card-actions justify-end">

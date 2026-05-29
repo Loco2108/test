@@ -17,7 +17,7 @@ export const load: LayoutLoad = async ({ url }) => {
 		console.error('Error:', error);
 	}
 
-	if (url.pathname === '/app') {
+	if (url.pathname.startsWith('/app')) {
 		throw redirect(307, '/login');
 	}
 
