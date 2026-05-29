@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChartNoAxesCombined } from '@lucide/svelte';
+	import { ChartNoAxesCombined, User } from '@lucide/svelte';
 	import type { ClassValue } from 'svelte/elements';
 
 	type Props = {
@@ -45,6 +45,16 @@
 			{#if subtitle}
 				<div class="text-sm text-secondary">{subtitle}</div>
 			{/if}
+		</div>
+
+		<div class="avatar-group -space-x-6">
+			{#each Array.from({ length: Math.random() * 20 + 1 }) as _, i}
+				<div class="avatar">
+					<div class="w-10 bg-info">
+						<User class="m-auto h-full" />
+					</div>
+				</div>
+			{/each}
 		</div>
 
 		<div class="divider m-0"></div>
