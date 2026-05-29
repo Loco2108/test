@@ -262,7 +262,7 @@
 
 			<div class="mt-4 flex justify-end gap-2">
 				{#if !isAtFirstStep}
-					<button class="btn" onclick={prev}>Previous</button>
+					<button type="button" class="btn" onclick={prev}>Previous</button>
 				{/if}
 
 				{#if !isAtLastStep}
@@ -293,7 +293,7 @@
 		<div class="mt-2">
 			<p>
 				Already have an Account?
-				<a class="underline" href="/login">Login</a>
+				<a class="link link-primary" href="/login">Login</a>
 			</p>
 		</div>
 	</div>
