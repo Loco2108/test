@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { themeManager } from '$lib/Theme.svelte';
 	import { loginUser } from '$lib/authStore.svelte';
+	import Toast from '$lib/components/Toast/Toast.svelte';
 
 	let { children, data } = $props();
 
@@ -20,3 +21,5 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 {@render children()}
+
+<Toast />

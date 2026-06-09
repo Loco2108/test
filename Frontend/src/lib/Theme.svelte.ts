@@ -19,6 +19,13 @@ export class ThemeManager {
 
 		localStorage.setItem('theme', this.theme);
 	}
+
+	setTheme(theme: 'dark' | 'light') {
+		this.theme = theme;
+		document.documentElement.setAttribute('data-theme', this.theme);
+
+		localStorage.setItem('theme', this.theme);
+	}
 }
 
 export const themeManager = new ThemeManager();

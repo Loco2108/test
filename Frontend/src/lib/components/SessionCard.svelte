@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { ChartNoAxesCombined, User } from '@lucide/svelte';
 	import type { ClassValue } from 'svelte/elements';
 
 	type Props = {
+		id?: string;
 		color?: 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error';
 		title?: string;
 		subtitle?: string;
@@ -13,6 +15,7 @@
 	};
 
 	let {
+		id,
 		color = 'primary',
 		title,
 		subtitle,
@@ -87,7 +90,8 @@
 				color === 'success' && 'btn-success',
 				color === 'warning' && 'btn-warning',
 				color === 'error' && 'btn-error',
-			]}>
+			]}
+			onclick={() => goto(`/app/sessions/${id}`)}>
 			<ChartNoAxesCombined />
 			Open
 		</button>

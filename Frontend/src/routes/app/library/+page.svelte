@@ -1,12 +1,18 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { scrollIntoViewOnMount } from '$lib/actions/scrollaction.js';
+	import NewSurveyDialog from '$lib/components/NewSurveyDialog.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
 	import {
 		Archive,
+		BadgePlus,
 		ChartNoAxesCombined,
+		Check,
 		ChevronRight,
+		Cog,
 		Folder,
 		Form,
+		Play,
 		Plus,
 		Scroll,
 		X,
@@ -65,6 +71,7 @@
 	let activeViewId = $derived(data.currentView);
 
 	let editingItem = $state<string | null>(null);
+	let newSurveyDialogRef: HTMLDialogElement | undefined = $state();
 </script>
 
 <div class="flex w-full flex-col gap-4 md:flex-row">
@@ -81,6 +88,10 @@
 					</li>
 				{/each}
 			</ul>
+			<button class="btn mt-2 btn-primary" onclick={() => newSurveyDialogRef?.showModal()}>
+				<BadgePlus />
+				New Survey
+			</button>
 		</li>
 	</ul>
 
@@ -113,7 +124,11 @@
 										{#each item.surveys as survey}
 											<li>
 												<button
-													onclick={() => (editingItem = survey.title)}>
+													onclick={() => (editingItem = survey.title)}
+													class={[
+														editingItem === survey.title &&
+															'bg-base-300',
+													]}>
 													<div class="flex items-center gap-2">
 														<Scroll size={16} />
 														{survey.title}
@@ -127,7 +142,9 @@
 							</li>
 						{:else if item.type === 'survey'}
 							<li>
-								<button onclick={() => (editingItem = item.title)}>
+								<button
+									onclick={() => (editingItem = item.title)}
+									class={[editingItem === item.title && 'bg-base-300']}>
 									<div class="flex items-center gap-2">
 										<Scroll size={16} />
 										{item.title}
@@ -170,15 +187,34 @@
 					</button>
 				</div>
 
-				<div class="my-16">
-					Here will be survey settings with an option to open a bigger editor somewhere
-					like /app/surveys/{'{surveyId}'}.
+				<div class="p-4">
+					Here will be quick settings that will be saved immediatly
+
+					<fieldset
+						class="fieldset w-full rounded-box border border-base-300 bg-base-100 p-4">
+						<legend class="fieldset-legend">Some Quick Options</legend>
+						<label class="label">
+							<input type="checkbox" checked class="toggle" />
+							Some
+						</label>
+
+						<label class="label">
+							<input type="checkbox" class="toggle" />
+							Other
+						</label>
+					</fieldset>
 				</div>
 
-				<div class="card-actions justify-end">
-					<button class="btn btn-primary"> Apply Changes </button>
+				<div class="card-actions flex-col">
+					<button
+						class="btn btn-block btn-outline btn-sm btn-secondary"
+						onclick={() => goto(`/app/surveys/${crypto.randomUUID()}`)}
+						><Cog size={20} /> Full Settings</button>
+					<button class="btn btn-block btn-primary"><Play /> Start Session </button>
 				</div>
 			</div>
 		</div>
 	{/if}
 </div>
+
+<NewSurveyDialog bind:ref={newSurveyDialogRef} />

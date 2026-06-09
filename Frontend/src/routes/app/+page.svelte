@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authStore } from '$lib/authStore.svelte';
+	import NewSurveyDialog from '$lib/components/NewSurveyDialog.svelte';
 	import SessionCard from '$lib/components/SessionCard.svelte';
 	import {
 		ArrowRight,
@@ -7,6 +8,7 @@
 		BadgeQuestionMark,
 		CirclePlus,
 		MessagesSquare,
+		X,
 		Zap,
 	} from '@lucide/svelte';
 	import type { ComponentProps } from 'svelte';
@@ -87,18 +89,28 @@
 			runAt: new Date(2026, 5, 20),
 		},
 	];
+
+	let templateModal: HTMLDialogElement | null = $state(null);
+	let templateTitle = $state('');
+	function openTemplateModal(title: string) {
+		templateTitle = title;
+
+		templateModal?.showModal();
+	}
+
+	let newSurveyDialogRef: HTMLDialogElement | undefined = $state();
 </script>
 
 <div
 	class="mt-4 flex w-full flex-col items-center justify-between gap-2 md:mt-16 md:flex-row md:px-16">
-	<div>
+	<div class="z-1">
 		<h2 class="text-4xl font-bold">
 			Welcome Back, {authStore.user?.username}
 		</h2>
 		<p class="text-lg text-secondary">Gather Insights like never before!</p>
 	</div>
 
-	<button class="btn w-fit btn-lg btn-primary">
+	<button class="btn w-fit btn-lg btn-primary" onclick={() => newSurveyDialogRef?.showModal()}>
 		<BadgePlus />
 		CREATE NEW SURVEY
 	</button>
@@ -120,7 +132,9 @@
 					{template.description}
 				</p>
 				<div class="card-actions">
-					<button class="btn btn-block btn-outline btn-accent">
+					<button
+						class="btn btn-block btn-outline btn-accent"
+						onclick={() => openTemplateModal(template.label)}>
 						<CirclePlus />
 						Create
 					</button>
@@ -140,6 +154,20 @@
 
 <div class="flex gap-4 overflow-auto">
 	{#each demoSessions as session}
-		<SessionCard {...session} />
+		<SessionCard id={crypto.randomUUID()} {...session} />
 	{/each}
 </div>
+
+<dialog class="modal" bind:this={templateModal}>
+	<div class="modal-box">
+		<form method="dialog">
+			<button class="btn absolute top-2 right-2 btn-ghost btn-sm"><X /></button>
+		</form>
+		<h3 class="text-lg font-bold">{templateTitle}</h3>
+		<p class="py-4">
+			Here will be a quick Survey Form with an option to instantly start a session.
+		</p>
+	</div>
+</dialog>
+
+<NewSurveyDialog bind:ref={newSurveyDialogRef} />

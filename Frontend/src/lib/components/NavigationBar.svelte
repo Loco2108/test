@@ -14,6 +14,7 @@
 	import { apiClient } from '$lib/apiClient';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import UserAvatar from './UserAvatar.svelte';
 
 	let menuTabs = [
 		{ label: 'Home', icon: House, href: '/app' },
@@ -34,15 +35,7 @@
 {#snippet profileDropdown()}
 	<div class="dropdown dropdown-end">
 		<button class="btn bg-base-300 py-6 btn-ghost">
-			<div class="avatar">
-				<div class="w-10 rounded-full bg-base-100">
-					{#if authStore.user?.profilePictureUrl}
-						<img alt="Account" src={authStore.user.profilePictureUrl} />
-					{:else}
-						<User class="m-auto h-full" />
-					{/if}
-				</div>
-			</div>
+			<UserAvatar />
 
 			<span class="hidden md:inline">
 				{authStore.user?.username}
@@ -51,9 +44,9 @@
 
 		<ul
 			tabindex="-1"
-			class="dropdown-content menu z-1 mt-3 w-52 menu-md rounded-box bg-base-100 p-2 shadow">
+			class="dropdown-content menu z-10 mt-3 w-52 menu-md rounded-box bg-base-100 p-2 shadow">
 			<li>
-				<a href="/app/settings">
+				<a href="/app/profile">
 					<User size={16} />
 					Profile
 				</a>
@@ -67,8 +60,8 @@
 				<details>
 					<summary><FileBadge size={16} /> Legal</summary>
 					<ul>
-						<li><a>Privacy Policy</a></li>
-						<li><a>Legal Notice</a></li>
+						<li><a href="/privacypolicy">Privacy Policy</a></li>
+						<li><a href="/legalnotice">Legal Notice</a></li>
 					</ul>
 				</details>
 			</li>
@@ -82,9 +75,27 @@
 	</div>
 {/snippet}
 
+{#snippet utils(small?: boolean)}
+	<a href="/help" class="btn btn-circle btn-ghost" aria-label="Help" title="Open Help Page">
+		<CircleQuestionMark />
+	</a>
+
+	{#if !small}
+		<div class="divider mx-0 divider-horizontal"></div>
+	{/if}
+
+	<ThemeToggle />
+{/snippet}
+
 <div class="navbar bg-base-100 shadow-sm">
 	<div class="mx-auto navbar-start flex-col md:flex-row">
-		<a href="/app" class="btn text-2xl font-extrabold btn-ghost">Stimmti</a>
+		<div class="mr-0 flex md:mr-2">
+			<a href="/app" class="btn text-2xl font-extrabold btn-ghost">Stimmti</a>
+
+			<div class="flex items-center gap-2 md:hidden">
+				{@render utils(true)}
+			</div>
+		</div>
 
 		<div class="flex gap-2">
 			<div role="tablist" class="tabs-box tabs flex-nowrap">
@@ -112,17 +123,7 @@
 
 	<div class="navbar-end hidden md:flex">
 		<div class="flex items-center gap-4">
-			<ThemeToggle />
-
-			<div class="divider mx-0! divider-horizontal"></div>
-
-			<a
-				href="/app/help"
-				class="btn btn-circle btn-ghost"
-				aria-label="Help"
-				title="Open Help Page">
-				<CircleQuestionMark />
-			</a>
+			{@render utils()}
 
 			{@render profileDropdown()}
 		</div>
