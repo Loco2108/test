@@ -15,5 +15,7 @@
 	"tailwindStylesheet": "./src/routes/layout.css",
 	"tabWidth": 4,
 	"semi": true,
-	"bracketSameLine": true
+	"bracketSameLine": true,
+	"svelteBracketNewLine": false,
+	"svelteSortOrder": "scripts-options-styles-markup"
 }
