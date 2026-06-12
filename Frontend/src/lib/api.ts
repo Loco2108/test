@@ -10,6 +10,11 @@
  * ---------------------------------------------------------------
  */
 
+export interface IdentityError {
+  code?: string | null;
+  description?: string | null;
+}
+
 export interface UserAuthDto {
   /** @format uuid */
   id?: string;
@@ -28,6 +33,22 @@ export interface UserRegisterDto {
   username?: string | null;
   password?: string | null;
   email?: string | null;
+}
+
+export interface UserUsernameAvailabilityResponseDto {
+  isAvailable?: boolean;
+  message?: string | null;
+}
+
+export interface ValidationProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  errors?: Record<string, string[]> | null;
+  [key: string]: any;
 }
 
 import type {
@@ -263,19 +284,24 @@ export class Api<
      * No description
      *
      * @tags User
-     * @name V1UserCheckUsernameCreate
-     * @request POST:/api/v1/User/checkUsername
+     * @name V1UserCheckUsernameList
+     * @request GET:/api/v1/User/checkUsername
      */
-    v1UserCheckUsernameCreate: (
-      query?: {
-        username?: string;
+    v1UserCheckUsernameList: (
+      query: {
+        /** @pattern ^[A-Za-z0-9]+$ */
+        Username: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<void, any>({
+      this.request<
+        UserUsernameAvailabilityResponseDto,
+        ValidationProblemDetails
+      >({
         path: `/api/v1/User/checkUsername`,
-        method: "POST",
+        method: "GET",
         query: query,
+        format: "json",
         ...params,
       }),
 
@@ -310,6 +336,40 @@ export class Api<
       this.request<UserAuthDto, any>({
         path: `/api/v1/User/me`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserUsernamePartialUpdate
+     * @request PATCH:/api/v1/User/username
+     */
+    v1UserUsernamePartialUpdate: (data: string, params: RequestParams = {}) =>
+      this.request<string, IdentityError[]>({
+        path: `/api/v1/User/username`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserEmailPartialUpdate
+     * @request PATCH:/api/v1/User/email
+     */
+    v1UserEmailPartialUpdate: (data: string, params: RequestParams = {}) =>
+      this.request<string, IdentityError[]>({
+        path: `/api/v1/User/email`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

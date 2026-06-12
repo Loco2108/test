@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Backend.Dto;
 using Backend.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -78,17 +79,27 @@ public class UserController : ControllerBase
         return Ok(new { message = "Successfully logged out" });
     }
 
-    [HttpPost("checkUsername")]
-    public async Task<IActionResult> CheckUsername(string username)
+    [HttpGet("checkUsername")]
+    [ProducesResponseType(typeof(UserUsernameAvailabilityResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UserUsernameAvailabilityResponseDto>> CheckUsername([FromQuery] UserUsernameCheckRequestDto request)
     {
-        var user = await _userManager.FindByNameAsync(username);
+        var user = await _userManager.FindByNameAsync(request.Username);
 
         if (user != null)
         {
-            return BadRequest("User with this name already exists");
+            return Ok(new UserUsernameAvailabilityResponseDto
+            {
+                IsAvailable = false,
+                Message = "User with this name already exists"
+            });
         }
 
-        return Ok(new { message = "Username is available" });
+        return Ok(new UserUsernameAvailabilityResponseDto
+        {
+            IsAvailable = true,
+            Message = "Username is available"
+        });
     }
 
     [HttpPost("checkEmail")]
@@ -120,5 +131,47 @@ public class UserController : ControllerBase
         };
 
         return Ok(userData);
+    }
+
+    [HttpPatch("username")]
+    [ProducesResponseType(typeof(IEnumerable<IdentityError>), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [Authorize]
+    public async Task<IActionResult> ChangeUsername([FromBody] string newUsername)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        newUsername = newUsername.Trim();
+
+        var res = await _userManager.SetUserNameAsync(user, newUsername);
+
+        if (!res.Succeeded)
+        {
+            return Conflict(res.Errors);
+        }
+
+        return Ok(newUsername);
+    }
+
+    [HttpPatch("email")]
+    [ProducesResponseType(typeof(IEnumerable<IdentityError>), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [Authorize]
+    public async Task<IActionResult> ChangeEmail([FromBody] string newEmail)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        newEmail = newEmail.Trim();
+
+        var res = await _userManager.SetEmailAsync(user, newEmail);
+
+        if (!res.Succeeded)
+        {
+            return Conflict(res.Errors);
+        }
+
+        return Ok(newEmail);
     }
 }
