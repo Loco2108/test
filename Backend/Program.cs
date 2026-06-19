@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using Backend.Filters;
 using Backend.Hubs;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
@@ -12,10 +14,16 @@ builder.Services.AddDbContext<StimmtiDbContext>(options =>
     options.UseMySQL(connectionString!));
 
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.DocumentFilter<IncludeEnumDocumentFilter>();
+});
 
 builder.Services.AddCors(options =>
 {
