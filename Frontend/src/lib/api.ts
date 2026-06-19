@@ -15,6 +15,16 @@ export interface IdentityError {
   description?: string | null;
 }
 
+export interface ProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+}
+
 export interface UserAuthDto {
   /** @format uuid */
   id?: string;
@@ -29,6 +39,13 @@ export interface UserLoginDto {
   staySignedIn?: boolean;
 }
 
+export interface UserPasswordDto {
+  /** @minLength 1 */
+  oldPassword: string;
+  /** @minLength 1 */
+  newPassword: string;
+}
+
 export interface UserRegisterDto {
   username?: string | null;
   password?: string | null;
@@ -38,6 +55,15 @@ export interface UserRegisterDto {
 export interface UserUsernameAvailabilityResponseDto {
   isAvailable?: boolean;
   message?: string | null;
+}
+
+export interface UserUsernameCheckRequestDto {
+  /**
+   * @minLength 1
+   * @maxLength 20
+   * @pattern ^[A-Za-z0-9]+$
+   */
+  username: string;
 }
 
 export interface ValidationProblemDetails {
@@ -289,7 +315,10 @@ export class Api<
      */
     v1UserCheckUsernameList: (
       query: {
-        /** @pattern ^[A-Za-z0-9]+$ */
+        /**
+         * @maxLength 20
+         * @pattern ^[A-Za-z0-9]+$
+         */
         Username: string;
       },
       params: RequestParams = {},
@@ -344,12 +373,12 @@ export class Api<
      * No description
      *
      * @tags User
-     * @name V1UserUsernamePartialUpdate
-     * @request PATCH:/api/v1/User/username
+     * @name V1UserEmailPartialUpdate
+     * @request PATCH:/api/v1/User/email
      */
-    v1UserUsernamePartialUpdate: (data: string, params: RequestParams = {}) =>
+    v1UserEmailPartialUpdate: (data: string, params: RequestParams = {}) =>
       this.request<string, IdentityError[]>({
-        path: `/api/v1/User/username`,
+        path: `/api/v1/User/email`,
         method: "PATCH",
         body: data,
         type: ContentType.Json,
@@ -361,12 +390,57 @@ export class Api<
      * No description
      *
      * @tags User
-     * @name V1UserEmailPartialUpdate
-     * @request PATCH:/api/v1/User/email
+     * @name V1UserPasswordPartialUpdate
+     * @request PATCH:/api/v1/User/password
      */
-    v1UserEmailPartialUpdate: (data: string, params: RequestParams = {}) =>
+    v1UserPasswordPartialUpdate: (
+      data: UserPasswordDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ValidationProblemDetails>({
+        path: `/api/v1/User/password`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserProfilePictureCreate
+     * @request POST:/api/v1/User/profilePicture
+     */
+    v1UserProfilePictureCreate: (
+      data: {
+        /** @format binary */
+        file?: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<string, ProblemDetails>({
+        path: `/api/v1/User/profilePicture`,
+        method: "POST",
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserUsernamePartialUpdate
+     * @request PATCH:/api/v1/User/username
+     */
+    v1UserUsernamePartialUpdate: (
+      data: UserUsernameCheckRequestDto,
+      params: RequestParams = {},
+    ) =>
       this.request<string, IdentityError[]>({
-        path: `/api/v1/User/email`,
+        path: `/api/v1/User/username`,
         method: "PATCH",
         body: data,
         type: ContentType.Json,
