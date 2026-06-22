@@ -2,6 +2,7 @@ using Backend.Hubs;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,11 +52,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseRouting();
 app.UseHttpsRedirection();
 app.UseWebSockets();
+
 app.UseCors();
+
+var avatarsPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", "avatars");
+
+if (!Directory.Exists(avatarsPath))
+{
+    Directory.CreateDirectory(avatarsPath);
+}
+
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(avatarsPath),
+    RequestPath = "/uploads/avatars"
+});
+
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
