@@ -11,7 +11,9 @@
 		type CustomizableAvatarSettings,
 	} from '$lib/components/CustomizableAvatar.svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { getContext } from 'svelte';
 	import { Play, Save, User } from '@lucide/svelte';
+	import type { SessionContext } from './+layout.svelte';
 	import QRCode from 'qrcode';
 	import type { ClassValue } from 'svelte/elements';
 
@@ -86,16 +88,7 @@
 	});
 
 	let { params } = $props();
-
-	function setFullscreen() {
-		var elem = document.documentElement;
-
-		var rfs = elem.requestFullscreen;
-
-		if (typeof rfs !== undefined && rfs) {
-			rfs.call(elem);
-		}
-	}
+	const { startSession } = getContext<SessionContext>('session');
 </script>
 
 {#snippet customizationCard(classes?: ClassValue)}
@@ -115,7 +108,7 @@
 						<input type="text" class="input" value="Mike Oxlong" />
 					</fieldset>
 
-					<button class="btn btn-block btn-outline btn-neutral">
+					<button class="btn mt-2 btn-block btn-outline btn-neutral">
 						<Save />
 						Save
 					</button>
@@ -202,7 +195,11 @@
 	</div>
 
 	<div class="mx-auto mt-8 w-fit">
-		<button class="btn btn-lg btn-primary" onclick={setFullscreen}>
+		<button
+			class="btn btn-lg btn-primary"
+			onclick={() => {
+				startSession();
+			}}>
 			<Play />
 			Start Session
 		</button>
