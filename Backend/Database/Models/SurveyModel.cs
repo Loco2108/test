@@ -7,6 +7,8 @@ public class Survey
     [Key]
     public Guid Id { get; set; }
 
+    public string Title { get; set; } = string.Empty;
+
     public Guid? FolderId { get; set; }
     public Folder? Folder { get; set; }
 
