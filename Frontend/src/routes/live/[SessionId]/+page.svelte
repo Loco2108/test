@@ -6,18 +6,26 @@
 		FaceProfileEnum,
 		HatProfileEnum,
 	} from '$lib/api.js';
+	import AvatarCustomizer from '$lib/components/AvatarCustomizer.svelte';
 	import CustomizableAvatar, {
 		type CustomizableAvatarSettings,
 	} from '$lib/components/CustomizableAvatar.svelte';
-	import { Play, User } from '@lucide/svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { Play, Save, User } from '@lucide/svelte';
 	import QRCode from 'qrcode';
+	import type { ClassValue } from 'svelte/elements';
+
+	function randomEnumValue<T extends Record<string, string>>(enumObj: T): T[keyof T] {
+		const values = Object.values(enumObj) as T[keyof T][];
+		return values[Math.floor(Math.random() * values.length)];
+	}
 
 	let mode: 'participant' | 'presentator' = $state('presentator');
 	let presenterCanvas: HTMLCanvasElement | undefined = $state();
 	let modalCanvas: HTMLCanvasElement | undefined = $state();
 	let fullscreenQRModal: HTMLDialogElement | undefined = $state();
 
-	let mockUsers: { settings: CustomizableAvatarSettings; name: string }[] = [
+	let mockUsers: { settings: CustomizableAvatarSettings; name: string; isAdmin?: boolean }[] = [
 		{
 			settings: {
 				color: ColorProfileEnum.Green,
@@ -35,6 +43,7 @@
 				body: BodyProfileEnum.Body03,
 			},
 			name: 'Fixi Hartmann',
+			isAdmin: true,
 		},
 		{
 			settings: {
@@ -55,6 +64,13 @@
 			name: 'xX_UltraGamer_HD_1080p_UHD_HDR_Ryzen10-6969x_GeForce-RTX-5090_Xx',
 		},
 	];
+
+	let avatarSettings: CustomizableAvatarSettings = $state({
+		color: randomEnumValue(ColorProfileEnum),
+		hat: randomEnumValue(HatProfileEnum),
+		face: randomEnumValue(FaceProfileEnum),
+		body: randomEnumValue(BodyProfileEnum),
+	});
 
 	$effect(() => {
 		const url = page.url.href;
@@ -82,6 +98,34 @@
 	}
 </script>
 
+{#snippet customizationCard(classes?: ClassValue)}
+	<div class={['card bg-base-100 card-md', classes]}>
+		<div class="card-body flex flex-col items-center">
+			<div class="flex w-full justify-between">
+				<h2 class="card-title">Avatar Settings</h2>
+				<ThemeToggle />
+			</div>
+
+			<AvatarCustomizer bind:settings={avatarSettings} />
+
+			<div class="mt-auto card-actions w-full">
+				<form class="w-full">
+					<fieldset class="mt-4 fieldset">
+						<legend class="fieldset-legend">Username</legend>
+						<input type="text" class="input" value="Mike Oxlong" />
+					</fieldset>
+
+					<button class="btn btn-block btn-outline btn-neutral">
+						<Save />
+						Save
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+{/snippet}
+
+<!-- I AM JUST A DEBUG TOGGLE! REMOVE ME WHEN IMPLEMENTIG THE REAL THING -->
 <input
 	type="checkbox"
 	onchange={(e) => (e.currentTarget.checked ? (mode = 'presentator') : (mode = 'participant'))}
@@ -90,7 +134,7 @@
 
 {#if mode === 'presentator'}
 	<div class="flex w-full justify-center">
-		<div class="card bg-base-100 card-md">
+		<div class="card bg-base-100 shadow card-md">
 			<div class="card-body">
 				<div class="flex flex-col items-center gap-2 md:flex-row">
 					<div>
@@ -121,12 +165,52 @@
 		</div>
 	</div>
 
+	<div
+		class="mt-4 flex w-full flex-col items-stretch justify-center gap-2 md:flex-row md:items-stretch">
+		{@render customizationCard('')}
+
+		<div class="card bg-base-100 card-md md:min-w-96">
+			<div class="card-body">
+				<h2 class="card-title">Settings</h2>
+
+				<label class="flex cursor-pointer gap-2">
+					<input type="checkbox" class="toggle" />
+					<span class="label-text">Setting 1</span>
+				</label>
+				<label class="flex cursor-pointer gap-2">
+					<input type="checkbox" class="toggle" />
+					<span class="label-text">Setting 2</span>
+				</label>
+				<label class="flex cursor-pointer gap-2">
+					<input type="checkbox" class="toggle" checked />
+					<span class="label-text">Setting 3</span>
+				</label>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Setting 5</legend>
+					<input type="text" class="input w-full" />
+				</fieldset>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Setting 5</legend>
+					<input type="text" class="input w-full" />
+				</fieldset>
+				<button class="btn btn-block btn-outline btn-neutral">
+					<Save />
+					Save settings
+				</button>
+			</div>
+		</div>
+	</div>
+
 	<div class="mx-auto mt-8 w-fit">
 		<button class="btn btn-lg btn-primary" onclick={setFullscreen}>
 			<Play />
 			Start Session
 		</button>
 	</div>
+{/if}
+
+{#if mode === 'participant'}
+	{@render customizationCard('w-fit mx-auto')}
 {/if}
 
 <ul class="list mx-auto mt-8 w-fit max-w-full rounded-box bg-base-100 shadow-md md:min-w-96">
@@ -146,7 +230,12 @@
 			<div class="shrink-0">
 				<CustomizableAvatar size={15} settings={user.settings} />
 			</div>
-			<div class="min-w-0 flex-1 truncate text-2xl font-bold">{user.name}</div>
+			<div class="min-w-0 flex-1 truncate text-2xl font-bold">
+				{user.name}
+				{#if user.isAdmin}
+					<div class="badge badge-info">Presentator</div>
+				{/if}
+			</div>
 		</li>
 	{/each}
 </ul>
