@@ -6,7 +6,7 @@
 
 ```bash
 # Setting up a development SQL Database
-sudo apt  install dotnet-host-10.0
+docker compose -f devdb.compose.yaml up -d
 
 # Starting the Backend
 cd Backend
