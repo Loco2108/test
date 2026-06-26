@@ -35,33 +35,31 @@
 	let { class: classes, style }: Props = $props();
 </script>
 
-{#if toasts.length}
-	<div
-		transition:slide
-		class={[
-			'fixed bottom-0 w-full min-w-100 md:left-1/2 md:w-auto md:max-w-200 md:-translate-x-1/2',
-			classes,
-		]}
-		{style}>
-		<div class="flex flex-col">
-			{#each toasts as element}
+<div
+	class={[
+		'pointer-events-none fixed bottom-0 w-full min-w-100 md:right-2 md:bottom-2 md:w-auto md:max-w-200',
+		classes,
+	]}
+	{style}>
+	<div class="flex flex-col">
+		{#each toasts as element}
+			<div transition:slide class="pt-2">
 				<div
 					class={[
-						'mb-2 alert flex gap-2 last:mb-0',
+						'alert flex gap-2 last:mb-0',
 						element.type === 'success' && 'alert-success',
 						element.type === 'warning' && 'alert-warning',
 						element.type === 'error' && 'alert-error',
 						element.type === 'info' && 'alert-info',
 						!element.type && 'alert-info',
-					]}
-					transition:slide>
+					]}>
 					{#if element.icon}
 						{@const Icon = element.icon}
 						<Icon size={24} class="min-w-6 self-start" />
 					{/if}
 					{element.label}
 				</div>
-			{/each}
-		</div>
+			</div>
+		{/each}
 	</div>
-{/if}
+</div>

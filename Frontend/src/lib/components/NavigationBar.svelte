@@ -37,7 +37,7 @@
 		<button class="btn bg-base-300 py-6 btn-ghost">
 			<UserAvatar />
 
-			<span class="hidden md:inline">
+			<span class="hidden max-w-40 truncate md:inline">
 				{authStore.user?.username}
 			</span>
 		</button>
