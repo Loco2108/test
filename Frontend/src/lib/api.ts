@@ -10,6 +10,38 @@
  * ---------------------------------------------------------------
  */
 
+export enum HatProfileEnum {
+  Hat01 = "Hat01",
+  Hat02 = "Hat02",
+  Hat03 = "Hat03",
+  Hat04 = "Hat04",
+  Hat05 = "Hat05",
+}
+
+export enum FaceProfileEnum {
+  Face01 = "Face01",
+  Face02 = "Face02",
+  Face03 = "Face03",
+  Face04 = "Face04",
+  Face05 = "Face05",
+}
+
+export enum ColorProfileEnum {
+  Green = "Green",
+  Blue = "Blue",
+  Red = "Red",
+  Purple = "Purple",
+  Yellow = "Yellow",
+}
+
+export enum BodyProfileEnum {
+  Body01 = "Body01",
+  Body02 = "Body02",
+  Body03 = "Body03",
+  Body04 = "Body04",
+  Body05 = "Body05",
+}
+
 export interface IdentityError {
   code?: string | null;
   description?: string | null;
