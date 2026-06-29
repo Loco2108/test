@@ -10,6 +10,4 @@ public class QuestionType
 
     public required string Name { get; set; }
     public required string Description { get; set; }
-
-    public List<QuestionTemplate> QuestionTemplates { get; set; } = new List<QuestionTemplate>();
 }
