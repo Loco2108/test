@@ -11,8 +11,8 @@ public class AnswerOption
 
     public required string Description { get; set; }
 
-    public required Guid QuestionTemplateId { get; set; }
-    public QuestionTemplate? QuestionTemplate { get; set; }
+    public Guid QuestionTemplateId { get; set; }
+    public required ChoiceQuestionTemplate QuestionTemplate { get; set; }
 
     public Answer? Answer;
 }

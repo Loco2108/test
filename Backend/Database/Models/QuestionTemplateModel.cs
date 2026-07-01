@@ -3,7 +3,7 @@ using Backend.Models.Enums;
 
 namespace Backend.Models;
 
-public class QuestionTemplate
+public abstract class QuestionTemplate
 {
     [Key]
     public Guid Id { get; set; }
@@ -20,5 +20,19 @@ public class QuestionTemplate
     public required QuestionTypeEnum QuestionType { get; set; }
 
     public List<Question> Questions { get; } = new List<Question>();
+}
+
+public abstract class ChoiceQuestionTemplate : QuestionTemplate
+{
     public List<AnswerOption> AnswerOptions { get; } = new List<AnswerOption>();
 }
+
+public class SingleChoiceQuestionTemplate : ChoiceQuestionTemplate { }
+
+public class MultipleChoiceQuestionTemplate : ChoiceQuestionTemplate { }
+
+public class WordCloudQuestionTemplate : QuestionTemplate { }
+
+public class FreeTextQuestionTemplate : QuestionTemplate { }
+
+public class NumberScaleQuestionTemplate : QuestionTemplate { }

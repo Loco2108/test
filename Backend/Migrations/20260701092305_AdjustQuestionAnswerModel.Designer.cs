@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(StimmtiDbContext))]
-    partial class StimmtiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701092305_AdjustQuestionAnswerModel")]
+    partial class AdjustQuestionAnswerModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,7 +179,7 @@ namespace Backend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<int>("QuestionType")
+                    b.Property<int>("QuestionTypeId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("SurveyId")
@@ -191,6 +194,56 @@ namespace Backend.Migrations
                     b.HasDiscriminator<int>("QuestionTypeId");
 
                     b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Backend.Models.QuestionType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("QuestionTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Choose one of multiple answer options",
+                            Name = "Single Choice"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Choose multiple answer options",
+                            Name = "Multiple Choice"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Submit a single word which is displayed in a cloud",
+                            Name = "Word Cloud"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "Submit any text of your choice",
+                            Name = "Free Text"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Description = "Submit a rating from 1 to 10",
+                            Name = "Number Scale"
+                        });
                 });
 
             modelBuilder.Entity("Backend.Models.Session", b =>
@@ -225,20 +278,11 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(2048)
-                        .HasColumnType("varchar(2048)");
-
                     b.Property<Guid?>("FolderId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("char(36)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
