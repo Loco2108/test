@@ -10,6 +10,35 @@
  * ---------------------------------------------------------------
  */
 
+export interface CreateFolderDto {
+  /** @maxLength 255 */
+  name?: string | null;
+}
+
+export interface CreateFolderResponseDto {
+  /** @format uuid */
+  folderId: string;
+}
+
+export interface CreateSurveyDto {
+  /** @maxLength 255 */
+  title?: string | null;
+  /** @maxLength 2048 */
+  description?: string | null;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
+export interface ProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  [key: string]: any;
+}
+
 export interface UserAuthDto {
   /** @format uuid */
   id?: string;
@@ -213,6 +242,42 @@ export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
   api = {
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyCreate
+     * @request POST:/api/v1/Survey
+     */
+    v1SurveyCreate: (data: CreateSurveyDto, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/v1/Survey`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyFoldersCreate
+     * @request POST:/api/v1/Survey/folders
+     */
+    v1SurveyFoldersCreate: (
+      data: CreateFolderDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<CreateFolderResponseDto, ProblemDetails>({
+        path: `/api/v1/Survey/folders`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *

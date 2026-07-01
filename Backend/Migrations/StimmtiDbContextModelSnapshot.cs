@@ -178,7 +178,7 @@ namespace Backend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<int>("QuestionTypeId")
+                    b.Property<int>("QuestionType")
                         .HasColumnType("int");
 
                     b.Property<Guid>("SurveyId")
@@ -186,61 +186,9 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuestionTypeId");
-
                     b.HasIndex("SurveyId");
 
                     b.ToTable("QuestionTemplates");
-                });
-
-            modelBuilder.Entity("Backend.Models.QuestionType", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("QuestionTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Choose one of multiple answer options",
-                            Name = "Single Choice"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Choose multiple answer options",
-                            Name = "Multiple Choice"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Submit a single word which is displayed in a cloud",
-                            Name = "Word Cloud"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Submit any text of your choice",
-                            Name = "Free Text"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Description = "Submit a rating from 1 to 10",
-                            Name = "Number Scale"
-                        });
                 });
 
             modelBuilder.Entity("Backend.Models.Session", b =>
@@ -275,6 +223,10 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(2048)
+                        .HasColumnType("varchar(2048)");
+
                     b.Property<Guid?>("FolderId")
                         .HasColumnType("char(36)");
 
@@ -283,7 +235,8 @@ namespace Backend.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
@@ -576,19 +529,11 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.QuestionTemplate", b =>
                 {
-                    b.HasOne("Backend.Models.QuestionType", "QuestionType")
-                        .WithMany("QuestionTemplates")
-                        .HasForeignKey("QuestionTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Backend.Models.Survey", "Survey")
                         .WithMany("QuestionTemplates")
                         .HasForeignKey("SurveyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("QuestionType");
 
                     b.Navigation("Survey");
                 });
@@ -703,11 +648,6 @@ namespace Backend.Migrations
                     b.Navigation("AnswerOptions");
 
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("Backend.Models.QuestionType", b =>
-                {
-                    b.Navigation("QuestionTemplates");
                 });
 
             modelBuilder.Entity("Backend.Models.Session", b =>
