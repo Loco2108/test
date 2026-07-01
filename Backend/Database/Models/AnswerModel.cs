@@ -12,9 +12,9 @@ public class Answer
     public Guid? AnswerOptionId { get; set; }
     public AnswerOption? AnswerOption { get; set; }
 
-    public Guid AnonymousUserId { get; set; }
-    public required AnonymousUser AnonymousUser { get; set; }
+    public required Guid AnonymousUserId { get; set; }
+    public AnonymousUser? AnonymousUser { get; set; }
 
-    public Guid QuestionId { get; set; }
-    public required Question Question { get; set; }
+    public required Guid QuestionId { get; set; }
+    public Question? Question { get; set; }
 }

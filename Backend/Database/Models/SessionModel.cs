@@ -13,8 +13,8 @@ public class Session
     [MaxLength(2048)]
     public required string Description { get; set; }
 
-    public Guid SurveyId { get; set; }
-    public required Survey Survey { get; set; }
+    public required Guid SurveyId { get; set; }
+    public Survey? Survey { get; set; }
 
     public List<AnonymousUser> AnonymousParticipants { get; } = new List<AnonymousUser>();
     public List<Question> Questions { get; } = new List<Question>();

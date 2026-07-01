@@ -7,12 +7,11 @@ public class Folder
     [Key]
     public Guid Id { get; set; }
 
-    [Required]
     [MaxLength(255)]
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 
-    public Guid OwnerId { get; set; }
-    public required User Owner { get; set; }
+    public required Guid OwnerId { get; set; }
+    public User? Owner { get; set; }
 
     public List<Survey> Surveys { get; } = new List<Survey>();
 }
