@@ -18,8 +18,6 @@ cd ../Frontend
 npm i
 npm run dev
 ```
-CMD als Admin
-net start MySQL80
 
 **Where to access what**
 |PhpMyAdmin|Swagger Docs|Frontend|
