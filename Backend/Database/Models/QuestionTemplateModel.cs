@@ -14,11 +14,10 @@ public class QuestionTemplate
     [MaxLength(2048)]
     public required string Description { get; set; }
 
-    public Guid SurveyId { get; set; }
-    public required Survey Survey { get; set; }
+    public required Guid SurveyId { get; set; }
+    public Survey? Survey { get; set; }
 
-    public QuestionTypeEnum QuestionTypeId { get; set; }
-    public required QuestionType QuestionType { get; set; }
+    public required QuestionTypeEnum QuestionType { get; set; }
 
     public List<Question> Questions { get; } = new List<Question>();
     public List<AnswerOption> AnswerOptions { get; } = new List<AnswerOption>();

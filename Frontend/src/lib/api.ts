@@ -42,6 +42,25 @@ export enum BodyProfileEnum {
   Body05 = "Body05",
 }
 
+export interface CreateFolderDto {
+  /** @maxLength 255 */
+  name?: string | null;
+}
+
+export interface CreateFolderResponseDto {
+  /** @format uuid */
+  folderId: string;
+}
+
+export interface CreateSurveyDto {
+  /** @maxLength 255 */
+  title?: string | null;
+  /** @maxLength 2048 */
+  description?: string | null;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
 export interface IdentityError {
   code?: string | null;
   description?: string | null;
@@ -295,6 +314,42 @@ export class Api<
     /**
      * No description
      *
+     * @tags Survey
+     * @name V1SurveyCreate
+     * @request POST:/api/v1/Survey
+     */
+    v1SurveyCreate: (data: CreateSurveyDto, params: RequestParams = {}) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/v1/Survey`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyFoldersCreate
+     * @request POST:/api/v1/Survey/folders
+     */
+    v1SurveyFoldersCreate: (
+      data: CreateFolderDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<CreateFolderResponseDto, ProblemDetails>({
+        path: `/api/v1/Survey/folders`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags User
      * @name V1UserRegisterCreate
      * @request POST:/api/v1/User/register
@@ -405,6 +460,26 @@ export class Api<
      * No description
      *
      * @tags User
+     * @name V1UserUsernamePartialUpdate
+     * @request PATCH:/api/v1/User/username
+     */
+    v1UserUsernamePartialUpdate: (
+      data: UserUsernameCheckRequestDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<string, IdentityError[]>({
+        path: `/api/v1/User/username`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
      * @name V1UserEmailPartialUpdate
      * @request PATCH:/api/v1/User/email
      */
@@ -456,26 +531,6 @@ export class Api<
         method: "POST",
         body: data,
         type: ContentType.FormData,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags User
-     * @name V1UserUsernamePartialUpdate
-     * @request PATCH:/api/v1/User/username
-     */
-    v1UserUsernamePartialUpdate: (
-      data: UserUsernameCheckRequestDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<string, IdentityError[]>({
-        path: `/api/v1/User/username`,
-        method: "PATCH",
-        body: data,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),
