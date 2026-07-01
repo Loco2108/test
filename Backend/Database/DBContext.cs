@@ -25,15 +25,18 @@ public class StimmtiDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
 
         builder.Entity<Folder>()
             .HasOne(x => x.Owner)
-            .WithMany(x => x.Folders);
+            .WithMany(x => x.Folders)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Survey>()
             .HasOne(x => x.Folder)
-            .WithMany(x => x.Surveys);
+            .WithMany(x => x.Surveys)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Session>()
             .HasOne(x => x.Survey)
-            .WithMany(x => x.Sessions);
+            .WithMany(x => x.Sessions)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<QuestionTemplate>()
             .HasDiscriminator<QuestionTypeEnum>("QuestionTypeId")

@@ -534,5 +534,20 @@ export class Api<
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserDeleteUserDelete
+     * @request DELETE:/api/v1/User/DeleteUser
+     */
+    v1UserDeleteUserDelete: (params: RequestParams = {}) =>
+      this.request<UserAuthDto, ProblemDetails>({
+        path: `/api/v1/User/DeleteUser`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
   };
 }

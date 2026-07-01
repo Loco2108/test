@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { authStore } from '$lib/authStore.svelte';
+	import { goto } from '$app/navigation';
+	import { apiClient } from '$lib/apiClient';
+	import { authStore, logoutUser } from '$lib/authStore.svelte';
 	import { addToast } from '$lib/components/Toast/Toast.svelte';
 	import { themeManager } from '$lib/Theme.svelte';
 	import { Cog, HeartCrack, Trash, User } from '@lucide/svelte';
@@ -10,12 +12,27 @@
 	let usernameAccountDeletevalue = $state('');
 
 	function deleteAccount() {
-		console.error('Account deletion not implemented yet');
-		addToast({
-			label: 'Account Deletion has not been implemented yet',
-			icon: HeartCrack,
-			type: 'error',
-		});
+		apiClient.api
+			.v1UserDeleteUserDelete()
+			.then(() => {
+				addToast({
+					label: 'Account deleted successfully',
+					icon: HeartCrack,
+					type: 'success',
+				});
+			})
+			.then(() => {
+				logoutUser();
+				goto('/');
+			})
+			.catch((e) => {
+				console.error(e);
+				addToast({
+					label: 'Error deleting account',
+					icon: HeartCrack,
+					type: 'error',
+				});
+			});
 	}
 </script>
 
