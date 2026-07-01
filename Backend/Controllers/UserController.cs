@@ -292,7 +292,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<UserAuthDto>> DeleteUser(Guid userId)
+    public async Task<ActionResult<UserAuthDto>> DeleteUser()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
