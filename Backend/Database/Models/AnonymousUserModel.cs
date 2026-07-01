@@ -9,11 +9,11 @@ public class AnonymousUser
 
     public required string Name { get; set; }
 
-    public Guid SessionId { get; set; }
-    public required Session Session { get; set; }
+    public required Guid SessionId { get; set; }
+    public Session? Session { get; set; }
 
-    public Guid ProfilePictureId { get; set; }
-    public required AnonymousProfilePicture ProfilePicture { get; set; }
+    public required Guid ProfilePictureId { get; set; }
+    public AnonymousProfilePicture? ProfilePicture { get; set; }
 
     public List<Answer> Answers { get; set; } = new List<Answer>();
 }
