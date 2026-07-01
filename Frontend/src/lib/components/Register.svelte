@@ -1,6 +1,8 @@
 <script lang="ts">
+	import type { ValidationProblemDetails } from '$lib/api';
 	import { apiClient } from '$lib/apiClient';
 	import { Eye, Key, LoaderCircle, Mail, User } from '@lucide/svelte';
+	import axios from 'axios';
 	import type { ClassValue } from 'svelte/elements';
 
 	type Props = {
@@ -68,30 +70,45 @@
 	}
 
 	function handleUsernameInput() {
+		clearTimeout(usernameTimeout);
+
 		usernameError = null;
 		usernameSuccess = null;
 
-		if (!username) {
+		if (!username || !username.trim()) {
 			usernameError = 'Please enter a Username';
+			isCheckingUsername = false;
 			return;
 		}
 
-		clearTimeout(usernameTimeout);
 		isCheckingUsername = true;
 
 		usernameTimeout = setTimeout(async () => {
-			await apiClient.api
-				.v1UserCheckUsernameCreate({ username })
-				.then((result) => {
-					if (result.status === 200) {
-						usernameSuccess = 'Username available';
-					}
-				})
-				.catch(() => {
-					usernameError = 'This Username already exists';
-				});
+			try {
+				const result = await apiClient.api.v1UserCheckUsernameList({ Username: username });
 
-			isCheckingUsername = false;
+				if (!result.data.isAvailable) {
+					usernameError = result.data.message ?? 'Username already taken';
+				} else {
+					usernameSuccess = result.data.message ?? 'Username is available';
+				}
+			} catch (e: unknown) {
+				if (axios.isAxiosError(e)) {
+					const serverError = e.response?.data as ValidationProblemDetails;
+
+					const validationError = serverError?.errors?.['Username']?.[0];
+
+					if (validationError) {
+						usernameError = validationError;
+					} else {
+						usernameError = 'An error occured while checking the username';
+					}
+				} else {
+					usernameError = 'An error occurred while checking the username';
+				}
+			} finally {
+				isCheckingUsername = false;
+			}
 		}, 500);
 	}
 

@@ -10,6 +10,38 @@
  * ---------------------------------------------------------------
  */
 
+export enum HatProfileEnum {
+  Hat01 = "Hat01",
+  Hat02 = "Hat02",
+  Hat03 = "Hat03",
+  Hat04 = "Hat04",
+  Hat05 = "Hat05",
+}
+
+export enum FaceProfileEnum {
+  Face01 = "Face01",
+  Face02 = "Face02",
+  Face03 = "Face03",
+  Face04 = "Face04",
+  Face05 = "Face05",
+}
+
+export enum ColorProfileEnum {
+  Green = "Green",
+  Blue = "Blue",
+  Red = "Red",
+  Purple = "Purple",
+  Yellow = "Yellow",
+}
+
+export enum BodyProfileEnum {
+  Body01 = "Body01",
+  Body02 = "Body02",
+  Body03 = "Body03",
+  Body04 = "Body04",
+  Body05 = "Body05",
+}
+
 export interface CreateFolderDto {
   /** @maxLength 255 */
   name?: string | null;
@@ -27,6 +59,11 @@ export interface CreateSurveyDto {
   description?: string | null;
   /** @format uuid */
   folderId?: string | null;
+}
+
+export interface IdentityError {
+  code?: string | null;
+  description?: string | null;
 }
 
 export interface ProblemDetails {
@@ -53,10 +90,42 @@ export interface UserLoginDto {
   staySignedIn?: boolean;
 }
 
+export interface UserPasswordDto {
+  /** @minLength 1 */
+  oldPassword: string;
+  /** @minLength 1 */
+  newPassword: string;
+}
+
 export interface UserRegisterDto {
   username?: string | null;
   password?: string | null;
   email?: string | null;
+}
+
+export interface UserUsernameAvailabilityResponseDto {
+  isAvailable?: boolean;
+  message?: string | null;
+}
+
+export interface UserUsernameCheckRequestDto {
+  /**
+   * @minLength 1
+   * @maxLength 20
+   * @pattern ^[A-Za-z0-9]+$
+   */
+  username: string;
+}
+
+export interface ValidationProblemDetails {
+  type?: string | null;
+  title?: string | null;
+  /** @format int32 */
+  status?: number | null;
+  detail?: string | null;
+  instance?: string | null;
+  errors?: Record<string, string[]> | null;
+  [key: string]: any;
 }
 
 import type {
@@ -328,19 +397,27 @@ export class Api<
      * No description
      *
      * @tags User
-     * @name V1UserCheckUsernameCreate
-     * @request POST:/api/v1/User/checkUsername
+     * @name V1UserCheckUsernameList
+     * @request GET:/api/v1/User/checkUsername
      */
-    v1UserCheckUsernameCreate: (
-      query?: {
-        username?: string;
+    v1UserCheckUsernameList: (
+      query: {
+        /**
+         * @maxLength 20
+         * @pattern ^[A-Za-z0-9]+$
+         */
+        Username: string;
       },
       params: RequestParams = {},
     ) =>
-      this.request<void, any>({
+      this.request<
+        UserUsernameAvailabilityResponseDto,
+        ValidationProblemDetails
+      >({
         path: `/api/v1/User/checkUsername`,
-        method: "POST",
+        method: "GET",
         query: query,
+        format: "json",
         ...params,
       }),
 
@@ -375,6 +452,85 @@ export class Api<
       this.request<UserAuthDto, any>({
         path: `/api/v1/User/me`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserUsernamePartialUpdate
+     * @request PATCH:/api/v1/User/username
+     */
+    v1UserUsernamePartialUpdate: (
+      data: UserUsernameCheckRequestDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<string, IdentityError[]>({
+        path: `/api/v1/User/username`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserEmailPartialUpdate
+     * @request PATCH:/api/v1/User/email
+     */
+    v1UserEmailPartialUpdate: (data: string, params: RequestParams = {}) =>
+      this.request<string, IdentityError[]>({
+        path: `/api/v1/User/email`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserPasswordPartialUpdate
+     * @request PATCH:/api/v1/User/password
+     */
+    v1UserPasswordPartialUpdate: (
+      data: UserPasswordDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ValidationProblemDetails>({
+        path: `/api/v1/User/password`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name V1UserProfilePictureCreate
+     * @request POST:/api/v1/User/profilePicture
+     */
+    v1UserProfilePictureCreate: (
+      data: {
+        /** @format binary */
+        file?: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<string, ProblemDetails>({
+        path: `/api/v1/User/profilePicture`,
+        method: "POST",
+        body: data,
+        type: ContentType.FormData,
         format: "json",
         ...params,
       }),
