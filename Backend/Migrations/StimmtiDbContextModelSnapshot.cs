@@ -501,7 +501,6 @@ namespace Backend.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .ValueGeneratedOnUpdateSometimes()
                         .HasMaxLength(2048)
                         .HasColumnType("varchar(2048)");
 
@@ -522,11 +521,19 @@ namespace Backend.Migrations
                 {
                     b.HasBaseType("Backend.Models.Answer");
 
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
                     b.Property<string>("Text")
                         .IsRequired()
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasMaxLength(2048)
-                        .HasColumnType("varchar(2048)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.ToTable("Answer", t =>
+                        {
+                            t.Property("Text")
+                                .HasColumnName("WordCloudAnswer_Text");
+                        });
 
                     b.HasDiscriminator().HasValue(3);
                 });

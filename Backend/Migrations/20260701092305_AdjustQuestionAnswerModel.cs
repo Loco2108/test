@@ -5,7 +5,7 @@
 namespace Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AdjustQuestionAnswerModels : Migration
+    public partial class AdjustQuestionAnswerModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,6 +37,12 @@ namespace Backend.Migrations
                 oldNullable: true);
 
             migrationBuilder.AddColumn<int>(
+                name: "Count",
+                table: "Answer",
+                type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
                 name: "QuestionTypeId",
                 table: "Answer",
                 type: "int",
@@ -47,6 +53,13 @@ namespace Backend.Migrations
                 name: "Value",
                 table: "Answer",
                 type: "int",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "WordCloudAnswer_Text",
+                table: "Answer",
+                type: "varchar(255)",
+                maxLength: 255,
                 nullable: true);
 
             migrationBuilder.CreateIndex(
@@ -75,11 +88,19 @@ namespace Backend.Migrations
                 table: "Answer");
 
             migrationBuilder.DropColumn(
+                name: "Count",
+                table: "Answer");
+
+            migrationBuilder.DropColumn(
                 name: "QuestionTypeId",
                 table: "Answer");
 
             migrationBuilder.DropColumn(
                 name: "Value",
+                table: "Answer");
+
+            migrationBuilder.DropColumn(
+                name: "WordCloudAnswer_Text",
                 table: "Answer");
 
             migrationBuilder.AlterColumn<string>(
