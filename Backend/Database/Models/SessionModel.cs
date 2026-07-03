@@ -19,7 +19,7 @@ public class Session
 
     public bool RoomActive { get; set; } = true;
 
-    public GameState CurrentState { get; set; } = GameState.Lobby;
+    public SessionState CurrentState { get; set; } = SessionState.Lobby;
 
     public required Guid SurveyId { get; set; }
     public Survey? Survey { get; set; }

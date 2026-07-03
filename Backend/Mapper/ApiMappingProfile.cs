@@ -14,5 +14,6 @@ public class ApiMappingProfile : Profile
         CreateMap<User, PresenterDto>();
         CreateMap<AnonymousUser, ParticipantDto>();
         CreateMap<AnonymousProfilePicture, AnonymousProfilePictureDto>();
+        CreateMap<AnonymousProfilePictureDto, AnonymousProfilePicture>();
     }
 }

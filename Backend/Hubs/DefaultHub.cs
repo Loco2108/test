@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using AutoMapper;
 using Backend.Dto;
 using Backend.Hubs.Interfaces;
@@ -31,7 +32,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             .Include(x => x.AnonymousParticipants)
             .ThenInclude(x => x.ProfilePicture)
             .Include(x => x.Survey)
-            .ThenInclude(x => x.Owner)
+            .ThenInclude(x => x!.Owner)
             .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode);
 
         if (session == null || session.RoomActive == false) return null;
@@ -48,7 +49,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
                 SessionName = session.Name,
                 SessionDescription = session.Description,
                 Role = ParticipantRole.Presenter,
-                GameState = session.CurrentState,
+                SessionState = session.CurrentState,
                 Presenter = _mapper.Map<PresenterDto>(session.Survey!.Owner),
                 Participants = _mapper.Map<List<ParticipantDto>>(session.AnonymousParticipants)
             };
@@ -99,7 +100,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             SessionName = session.Name,
             SessionDescription = session.Description,
             Role = ParticipantRole.Participant,
-            GameState = session.CurrentState,
+            SessionState = session.CurrentState,
             UserInformation = _mapper.Map<AnonymousUserDto>(participant),
             Presenter = _mapper.Map<PresenterDto>(session.Survey!.Owner),
             Participants = _mapper.Map<List<ParticipantDto>>(session.AnonymousParticipants)
@@ -109,5 +110,46 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
     public async Task LeaveRoom(string roomId)
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+    }
+
+    public async Task<bool> UpdateParticipantData(ParticipantUpdateDto data)
+    {
+        var participant = await _context.AnonymousUsers
+            .Include(x => x.ProfilePicture)
+            .Include(x => x.Session)
+            .FirstOrDefaultAsync(x => x.Id == data.AnonymousUserId);
+
+        if (participant == null) return false;
+        if (participant.Session!.RoomCode != data.RoomCode) return false;
+        if (participant.Session!.RoomActive == false) return false;
+        if (!string.IsNullOrWhiteSpace(data.Name) && data.Name.Length > 64) return false;
+
+        var oldName = participant.Name;
+
+        if (!string.IsNullOrWhiteSpace(data.Name))
+        {
+            var nameAlreadyExists = await _context.AnonymousUsers
+                .AnyAsync(x => x.Name.ToLower() == data.Name.Trim().ToLower());
+
+            if (nameAlreadyExists) return false;
+
+            participant.Name = data.Name.Trim();
+        }
+
+        if (data.ProfilePicture != null)
+        {
+            _mapper.Map(data.ProfilePicture, participant.ProfilePicture);
+        }
+
+        await _context.SaveChangesAsync();
+
+        await Clients.Group(data.RoomCode).ParticipantUpdated(new ParticipantUpdateResponseDto
+        {
+            OldName = oldName,
+            NewName = participant.Name,
+            ProfilePicture = _mapper.Map<AnonymousProfilePictureDto>(participant.ProfilePicture)
+        });
+
+        return true;
     }
 }

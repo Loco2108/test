@@ -268,7 +268,7 @@ namespace Backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
+                    Name = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
                     SessionId = table.Column<Guid>(type: "char(36)", nullable: false)
                 },
                 constraints: table =>

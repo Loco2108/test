@@ -3,7 +3,7 @@ using Tapper;
 namespace Backend.Models.Enums;
 
 [TranspilationSource]
-public enum GameState
+public enum SessionState
 {
     Lobby = 1,
     Loading,

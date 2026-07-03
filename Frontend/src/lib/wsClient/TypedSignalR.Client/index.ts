@@ -4,7 +4,7 @@
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
 import type { ISessionHub, ISessionHubClient } from './Backend.Hubs.Interfaces';
-import type { JoinSessionDto, RestoreStateDto, ParticipantDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto } from '../Backend.Dto';
 
 
 // components
@@ -87,6 +87,10 @@ class ISessionHub_HubProxy implements ISessionHub {
     public readonly leaveRoom = async (roomId: string): Promise<void> => {
         return await this.connection.invoke("LeaveRoom", roomId);
     }
+
+    public readonly updateParticipantData = async (data: ParticipantUpdateDto): Promise<boolean> => {
+        return await this.connection.invoke("UpdateParticipantData", data);
+    }
 }
 
 
@@ -102,11 +106,14 @@ class ISessionHubClient_Binder implements ReceiverRegister<ISessionHubClient> {
     public readonly register = (connection: HubConnection, receiver: ISessionHubClient): Disposable => {
 
         const __participantJoined = (...args: [ParticipantDto]) => receiver.participantJoined(...args);
+        const __participantUpdated = (...args: [ParticipantUpdateResponseDto]) => receiver.participantUpdated(...args);
 
         connection.on("ParticipantJoined", __participantJoined);
+        connection.on("ParticipantUpdated", __participantUpdated);
 
         const methodList: ReceiverMethod[] = [
-            { methodName: "ParticipantJoined", method: __participantJoined }
+            { methodName: "ParticipantJoined", method: __participantJoined },
+            { methodName: "ParticipantUpdated", method: __participantUpdated }
         ]
 
         return new ReceiverMethodSubscription(connection, methodList);

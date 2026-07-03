@@ -7,7 +7,7 @@ public class AnonymousUser
     [Key]
     public Guid Id { get; set; }
 
-    [MaxLength(255)]
+    [MaxLength(64)]
     public required string Name { get; set; }
 
     public required Guid SessionId { get; set; }

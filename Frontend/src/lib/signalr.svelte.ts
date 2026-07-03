@@ -3,7 +3,11 @@ import type {
 	ISessionHub,
 	ISessionHubClient,
 } from './wsClient/TypedSignalR.Client/Backend.Hubs.Interfaces';
-import type { JoinSessionDto, RestoreStateDto } from './wsClient/Backend.Dto';
+import type {
+	AnonymousProfilePictureDto,
+	JoinSessionDto,
+	RestoreStateDto,
+} from './wsClient/Backend.Dto';
 import { getHubProxyFactory, getReceiverRegister } from './wsClient/TypedSignalR.Client';
 
 export class SessionConnection {
@@ -30,6 +34,13 @@ export class SessionConnection {
 		const receiver: ISessionHubClient = {
 			participantJoined: async (data) => {
 				this.state?.participants.push(data);
+			},
+			participantUpdated: async (data) => {
+				let par = this.state?.participants.find((x) => x.name === data.oldName);
+				if (!par) return;
+
+				par.name = data.newName;
+				par.profilePicture = data.profilePicture;
 			},
 		};
 
@@ -76,6 +87,22 @@ export class SessionConnection {
 			this.currentRoomCode = null;
 			this.state = null;
 		}
+	}
+
+	async updateParticipantData(name?: string, profilePicture?: AnonymousProfilePictureDto) {
+		if (!this.currentRoomCode || !this.connected) return false;
+
+		let anonymousUserId = localStorage.getItem('anonymousUserId');
+		if (!anonymousUserId) return false;
+
+		let res = await this.sessionHub.updateParticipantData({
+			roomCode: this.currentRoomCode,
+			anonymousUserId,
+			name,
+			profilePicture,
+		});
+
+		return res;
 	}
 
 	destroy() {

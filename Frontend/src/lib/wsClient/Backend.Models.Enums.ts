@@ -29,13 +29,6 @@ export enum FaceProfileEnum {
     Face05 = "Face05",
 }
 
-/** Transpiled from Backend.Models.Enums.GameState */
-export enum GameState {
-    Lobby = "Lobby",
-    Loading = "Loading",
-    Question = "Question",
-}
-
 /** Transpiled from Backend.Models.Enums.HatProfileEnum */
 export enum HatProfileEnum {
     Hat01 = "Hat01",
@@ -49,5 +42,12 @@ export enum HatProfileEnum {
 export enum ParticipantRole {
     Participant = "Participant",
     Presenter = "Presenter",
+}
+
+/** Transpiled from Backend.Models.Enums.SessionState */
+export enum SessionState {
+    Lobby = "Lobby",
+    Loading = "Loading",
+    Question = "Question",
 }
 

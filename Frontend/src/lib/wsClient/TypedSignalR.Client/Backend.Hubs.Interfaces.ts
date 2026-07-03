@@ -3,7 +3,7 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
-import type { JoinSessionDto, RestoreStateDto, ParticipantDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto } from '../Backend.Dto';
 
 export type ISessionHub = {
     /**
@@ -16,6 +16,11 @@ export type ISessionHub = {
     * @returns Transpiled from System.Threading.Tasks.Task
     */
     leaveRoom(roomId: string): Promise<void>;
+    /**
+    * @param data Transpiled from Backend.Dto.ParticipantUpdateDto
+    * @returns Transpiled from System.Threading.Tasks.Task<bool>
+    */
+    updateParticipantData(data: ParticipantUpdateDto): Promise<boolean>;
 }
 
 export type ISessionHubClient = {
@@ -24,5 +29,10 @@ export type ISessionHubClient = {
     * @returns Transpiled from System.Threading.Tasks.Task
     */
     participantJoined(data: ParticipantDto): Promise<void>;
+    /**
+    * @param data Transpiled from Backend.Dto.ParticipantUpdateResponseDto
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    participantUpdated(data: ParticipantUpdateResponseDto): Promise<void>;
 }
 

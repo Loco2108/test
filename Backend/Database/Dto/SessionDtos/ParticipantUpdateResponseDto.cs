@@ -3,9 +3,9 @@ using Tapper;
 namespace Backend.Dto;
 
 [TranspilationSource]
-public class AnonymousUserDto
+public class ParticipantUpdateResponseDto
 {
-    public Guid Id { get; set; }
-    public required string Name { get; set; }
+    public required string OldName { get; set; }
+    public required string NewName { get; set; }
     public required AnonymousProfilePictureDto ProfilePicture { get; set; }
 }

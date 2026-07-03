@@ -1,11 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import {
-		BodyProfileEnum,
-		ColorProfileEnum,
-		FaceProfileEnum,
-		HatProfileEnum,
-	} from '$lib/api.js';
 	import AvatarCustomizer from '$lib/components/AvatarCustomizer.svelte';
 	import CustomizableAvatar, {
 		type CustomizableAvatarSettings,
@@ -18,66 +12,20 @@
 	import type { ClassValue } from 'svelte/elements';
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { ParticipantRole } from '$lib/wsClient/Backend.Models.Enums.js';
+	import { addToast } from '$lib/components/Toast/Toast.svelte';
 
 	let { data, params } = $props();
 	let hub = $derived(data.hub);
-
-	function randomEnumValue<T extends Record<string, string>>(enumObj: T): T[keyof T] {
-		const values = Object.values(enumObj) as T[keyof T][];
-		return values[Math.floor(Math.random() * values.length)];
-	}
 
 	let mode: 'participant' | 'presentator' = $state('presentator');
 	let presenterCanvas: HTMLCanvasElement | undefined = $state();
 	let modalCanvas: HTMLCanvasElement | undefined = $state();
 	let fullscreenQRModal: HTMLDialogElement | undefined = $state();
 
-	let mockUsers: { settings: CustomizableAvatarSettings; name: string; isAdmin?: boolean }[] = [
-		{
-			settings: {
-				color: ColorProfileEnum.Green,
-				hat: HatProfileEnum.Hat04,
-				face: FaceProfileEnum.Face04,
-				body: BodyProfileEnum.Body04,
-			},
-			name: 'Mike Oxlong',
-		},
-		{
-			settings: {
-				color: ColorProfileEnum.Red,
-				hat: HatProfileEnum.Hat02,
-				face: FaceProfileEnum.Face01,
-				body: BodyProfileEnum.Body03,
-			},
-			name: 'Fixi Hartmann',
-			isAdmin: true,
-		},
-		{
-			settings: {
-				color: ColorProfileEnum.Yellow,
-				hat: HatProfileEnum.Hat05,
-				face: FaceProfileEnum.Face05,
-				body: BodyProfileEnum.Body05,
-			},
-			name: 'Chris P. Bacon',
-		},
-		{
-			settings: {
-				color: ColorProfileEnum.Blue,
-				hat: HatProfileEnum.Hat01,
-				face: FaceProfileEnum.Face01,
-				body: BodyProfileEnum.Body01,
-			},
-			name: 'xX_UltraGamer_HD_1080p_UHD_HDR_Ryzen10-6969x_GeForce-RTX-5090_Xx',
-		},
-	];
-
-	let avatarSettings: CustomizableAvatarSettings = $state({
-		color: randomEnumValue(ColorProfileEnum),
-		hat: randomEnumValue(HatProfileEnum),
-		face: randomEnumValue(FaceProfileEnum),
-		body: randomEnumValue(BodyProfileEnum),
-	});
+	let avatarSettings: CustomizableAvatarSettings | undefined = $derived(
+		hub.state?.userInformation?.profilePicture
+	);
+	let participantName: string | undefined = $derived(hub.state?.userInformation?.name);
 
 	$effect(() => {
 		const url = page.url.href;
@@ -91,6 +39,17 @@
 			}
 		}
 	});
+
+	async function updateParticipant() {
+		let res = await hub.updateParticipantData(participantName, avatarSettings);
+
+		if (res) {
+			addToast({ label: 'Successfully updated profile data', type: 'success' });
+			return;
+		}
+
+		addToast({ label: 'Error updating profile data', type: 'error' });
+	}
 
 	const { startSession } = getContext<SessionContext>('session');
 </script>
@@ -106,10 +65,14 @@
 			<AvatarCustomizer bind:settings={avatarSettings} />
 
 			<div class="mt-auto card-actions w-full">
-				<form class="w-full">
+				<form class="w-full" onsubmit={updateParticipant}>
 					<fieldset class="mt-4 fieldset">
 						<legend class="fieldset-legend">Username</legend>
-						<input type="text" class="input" value="Mike Oxlong" />
+						<input
+							type="text"
+							class="input"
+							bind:value={participantName}
+							maxlength="64" />
 					</fieldset>
 
 					<button class="btn mt-2 btn-block btn-outline btn-neutral">
@@ -155,34 +118,15 @@
 		</div>
 	</div>
 
-	<div class="card mt-4 bg-base-100 card-md md:min-w-96">
-		<div class="card-body">
-			<h2 class="card-title">Settings</h2>
-
-			<label class="flex cursor-pointer gap-2">
-				<input type="checkbox" class="toggle" />
-				<span class="label-text">Setting 1</span>
-			</label>
-			<label class="flex cursor-pointer gap-2">
-				<input type="checkbox" class="toggle" />
-				<span class="label-text">Setting 2</span>
-			</label>
-			<label class="flex cursor-pointer gap-2">
-				<input type="checkbox" class="toggle" checked />
-				<span class="label-text">Setting 3</span>
-			</label>
-			<fieldset class="fieldset">
-				<legend class="fieldset-legend">Setting 5</legend>
-				<input type="text" class="input w-full" />
-			</fieldset>
-			<fieldset class="fieldset">
-				<legend class="fieldset-legend">Setting 5</legend>
-				<input type="text" class="input w-full" />
-			</fieldset>
-			<button class="btn btn-block btn-outline btn-neutral">
-				<Save />
-				Save settings
-			</button>
+	<div class="card card-md">
+		<div class="mx-auto card-body flex w-fit flex-row items-center">
+			<div class="shrink-0">
+				<UserAvatar size={15} profilePictureUrl={hub.state?.presenter.profilePictureUrl} />
+			</div>
+			<div class="min-w-0 flex-1 truncate text-2xl font-bold">
+				{hub.state?.presenter.userName}
+				<div class="badge badge-info">Presentator</div>
+			</div>
 		</div>
 	</div>
 
@@ -199,20 +143,23 @@
 {/if}
 
 {#if hub.state?.role == ParticipantRole.Participant}
+	<div class="card mx-auto my-4 w-fit bg-base-100 shadow card-md">
+		<div class="card-body">
+			<h2 class="card-title">Session</h2>
+
+			<span class="text-xl font-bold text-primary">
+				{params.RoomCode}
+			</span>
+		</div>
+	</div>
+
 	{@render customizationCard('w-fit mx-auto')}
 {/if}
 
 <ul class="list mx-auto mt-8 w-fit max-w-full rounded-box bg-base-100 shadow-md md:min-w-96">
-	<li class="p-4 pb-2 text-xs tracking-wide opacity-60">Participants</li>
-
-	<li class="list-row flex items-center">
-		<div class="shrink-0">
-			<UserAvatar size={15} profilePictureUrl={hub.state?.presenter.profilePictureUrl} />
-		</div>
-		<div class="min-w-0 flex-1 truncate text-2xl font-bold">
-			{hub.state?.presenter.userName}
-			<div class="badge badge-info">Presentator</div>
-		</div>
+	<li class="p-4 pb-2 text-xs tracking-wide opacity-60">
+		<span>Participants</span>
+		<kbd class="kbd kbd-sm">{hub.state?.participants.length}</kbd>
 	</li>
 
 	{#each hub.state?.participants as participant}
