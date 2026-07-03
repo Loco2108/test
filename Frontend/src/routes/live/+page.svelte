@@ -44,7 +44,7 @@
 </script>
 
 <button
-	class="btn mt-4 ml-4 btn-ghost md:absolute"
+	class="btn absolute top-4 left-4 z-10 btn-ghost"
 	aria-label="Navigate Back"
 	onclick={() => history.back()}>
 	<ChevronLeft />
@@ -56,37 +56,22 @@
 			<div class="card-body">
 				<h2 class="mx-auto card-title">Join Session</h2>
 
-				<p class="text-center text-balance text-secondary">
-					Enter your room code or scan the QR code to participate
-				</p>
+				<form class="flex flex-col justify-center" onsubmit={checkSession}>
+					<span class="mb-2 font-bold">Room Code</span>
 
-				<div class="mt-4 card-actions w-full justify-end">
-					<form class="w-full" onsubmit={checkSession}>
-						<fieldset class="fieldset">
-							<legend class="fieldset-legend">Room Code</legend>
+					<label class="otp otp-lg">
+						<span></span>
+						<span></span>
+						<span></span>
+						<span></span>
+						<span></span>
+						<span></span>
+						<span></span>
+						<input type="text" maxlength="7" required bind:value={roomCode} />
+					</label>
 
-							<label class="otp otp-lg">
-								<span></span>
-								<span></span>
-								<span></span>
-								<span></span>
-								<span></span>
-								<span></span>
-								<span></span>
-								<input type="text" maxlength="7" required bind:value={roomCode} />
-							</label>
-						</fieldset>
-
-						<button class="btn mt-4 btn-block btn-primary" type="submit">Join</button>
-					</form>
-
-					<div class="divider w-full">OR</div>
-
-					<button class="btn btn-block btn-outline">
-						<QrCode />
-						Scan QR-Code
-					</button>
-				</div>
+					<button class="btn mt-4 btn-block btn-primary" type="submit">Join</button>
+				</form>
 			</div>
 		</div>
 	</div>

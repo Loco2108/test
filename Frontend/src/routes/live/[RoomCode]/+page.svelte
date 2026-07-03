@@ -6,10 +6,9 @@
 	} from '$lib/components/CustomizableAvatar.svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { getContext } from 'svelte';
-	import { Play, Save } from '@lucide/svelte';
+	import { Play, Save, Users } from '@lucide/svelte';
 	import type { SessionContext } from './+layout.svelte';
 	import QRCode from 'qrcode';
-	import type { ClassValue } from 'svelte/elements';
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { ParticipantRole } from '$lib/wsClient/Backend.Models.Enums.js';
 	import { addToast } from '$lib/components/Toast/Toast.svelte';
@@ -17,7 +16,6 @@
 	let { data, params } = $props();
 	let hub = $derived(data.hub);
 
-	let mode: 'participant' | 'presentator' = $state('presentator');
 	let presenterCanvas: HTMLCanvasElement | undefined = $state();
 	let modalCanvas: HTMLCanvasElement | undefined = $state();
 	let fullscreenQRModal: HTMLDialogElement | undefined = $state();
@@ -29,14 +27,11 @@
 
 	$effect(() => {
 		const url = page.url.href;
-		if (mode === 'presentator') {
-			if (presenterCanvas) {
-				QRCode.toCanvas(presenterCanvas, url);
-			}
-
-			if (modalCanvas) {
-				QRCode.toCanvas(modalCanvas, url);
-			}
+		if (presenterCanvas) {
+			QRCode.toCanvas(presenterCanvas, url);
+		}
+		if (modalCanvas) {
+			QRCode.toCanvas(modalCanvas, url, { width: 512 });
 		}
 	});
 
@@ -54,144 +49,163 @@
 	const { startSession } = getContext<SessionContext>('session');
 </script>
 
-{#snippet customizationCard(classes?: ClassValue)}
-	<div class={['card bg-base-100 card-md', classes]}>
-		<div class="card-body flex flex-col items-center">
-			<div class="flex w-full justify-between">
-				<h2 class="card-title">Avatar Settings</h2>
-				<ThemeToggle />
-			</div>
-
-			<AvatarCustomizer bind:settings={avatarSettings} />
-
-			<div class="mt-auto card-actions w-full">
-				<form class="w-full" onsubmit={updateParticipant}>
-					<fieldset class="mt-4 fieldset">
-						<legend class="fieldset-legend">Username</legend>
-						<input
-							type="text"
-							class="input"
-							bind:value={participantName}
-							maxlength="64" />
-					</fieldset>
-
-					<button class="btn mt-2 btn-block btn-outline btn-neutral">
-						<Save />
-						Save
-					</button>
-				</form>
-			</div>
+{#snippet participantsList()}
+	<div class="card bg-base-100 shadow-md">
+		<div class="card-body">
+			<h2 class="card-title">
+				<Users class="h-5 w-5" />
+				Participants
+				<div class="ml-1 badge badge-outline">{hub.state?.participants.length ?? 0}</div>
+			</h2>
+			{#if !hub.state?.participants.length}
+				<p class="py-6 text-center text-sm opacity-50">Waiting for participants to join…</p>
+			{:else}
+				<div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+					{#each hub.state?.participants as participant}
+						<div class="flex items-center gap-3 rounded-box bg-base-200 p-2">
+							<div class="shrink-0">
+								<CustomizableAvatar
+									size={10}
+									settings={participant.profilePicture} />
+							</div>
+							<span class="min-w-0 flex-1 truncate font-medium"
+								>{participant.name}</span>
+						</div>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	</div>
 {/snippet}
 
-{#if hub.state?.role == ParticipantRole.Presenter}
-	<div class="flex w-full justify-center">
-		<div class="card bg-base-100 shadow card-md">
-			<div class="card-body">
-				<div class="flex flex-col items-center gap-2 md:flex-row">
-					<div>
-						<div>Join on</div>
-						<div class="text-lg font-bold">{page.url.origin}/live</div>
-					</div>
-
-					<div class="divider divider-vertical md:divider-horizontal"></div>
-
-					<div>
-						<div>Room Code:</div>
-						<span class="text-6xl font-bold text-primary">{params.RoomCode}</span>
-					</div>
-
-					<div class="divider divider-vertical md:divider-horizontal"></div>
-
-					<button
-						class="btn h-fit btn-ghost p-2"
-						aria-label="Fullscreen QR-Code"
-						onclick={() => fullscreenQRModal?.showModal()}>
-						<canvas
-							bind:this={presenterCanvas}
-							class="min-h-30 min-w-30"
-							style="image-rendering: pixelated;"></canvas>
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="card card-md">
-		<div class="mx-auto card-body flex w-fit flex-row items-center">
-			<div class="shrink-0">
-				<UserAvatar size={15} profilePictureUrl={hub.state?.presenter.profilePictureUrl} />
-			</div>
-			<div class="min-w-0 flex-1 truncate text-2xl font-bold">
-				{hub.state?.presenter.userName}
-				<div class="badge badge-info">Presentator</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="mx-auto mt-8 w-fit">
-		<button
-			class="btn btn-lg btn-primary"
-			onclick={() => {
-				startSession();
-			}}>
-			<Play />
-			Start Session
-		</button>
-	</div>
-{/if}
-
-{#if hub.state?.role == ParticipantRole.Participant}
-	<div class="card mx-auto my-4 w-fit bg-base-100 shadow card-md">
+{#snippet customizationCard()}
+	<div class="card bg-base-100 shadow-md">
 		<div class="card-body">
-			<h2 class="card-title">Session</h2>
+			<h2 class="card-title">Your Profile</h2>
 
-			<span class="text-xl font-bold text-primary">
-				{params.RoomCode}
-			</span>
-		</div>
-	</div>
-
-	{@render customizationCard('w-fit mx-auto')}
-{/if}
-
-<ul class="list mx-auto mt-8 w-fit max-w-full rounded-box bg-base-100 shadow-md md:min-w-96">
-	<li class="p-4 pb-2 text-xs tracking-wide opacity-60">
-		<span>Participants</span>
-		<kbd class="kbd kbd-sm">{hub.state?.participants.length}</kbd>
-	</li>
-
-	{#each hub.state?.participants as participant}
-		{@const profilePicture = participant.profilePicture}
-		<li class="list-row flex items-center">
-			<div class="shrink-0">
-				<CustomizableAvatar size={15} settings={profilePicture} />
+			<div class="mt-2 flex flex-col items-center">
+				<AvatarCustomizer bind:settings={avatarSettings} />
 			</div>
-			<div class="min-w-0 flex-1 truncate text-2xl font-bold">
-				{participant.name}
-			</div>
-		</li>
-	{/each}
-</ul>
-
-<dialog class="modal modal-bottom md:modal-middle" bind:this={fullscreenQRModal}>
-	<div class="modal-box flex flex-col items-center justify-center p-6">
-		<div class="aspect-square w-full max-w-xs md:max-w-sm">
-			<canvas
-				bind:this={modalCanvas}
-				class="block min-h-full min-w-full"
-				style="image-rendering: pixelated;">
-			</canvas>
-		</div>
-
-		<div class="modal-action w-full">
-			<form method="dialog" class="w-full">
-				<button class="btn btn-block btn-outline">Schließen</button>
+			<form class="mt-4" onsubmit={updateParticipant}>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Username</legend>
+					<input
+						type="text"
+						class="input w-full"
+						bind:value={participantName}
+						maxlength="64" />
+				</fieldset>
+				<button class="btn mt-3 btn-block btn-outline btn-neutral">
+					<Save class="h-4 w-4" />
+					Save Changes
+				</button>
 			</form>
 		</div>
 	</div>
+{/snippet}
 
+<div class="navbar border-b border-base-300 bg-base-100 px-4">
+	<div class="navbar-start gap-2">
+		<span class="text-lg font-bold">Stimmti</span>
+		<div class="divider mx-1 divider-horizontal h-5 self-center"></div>
+		<span class="text-sm opacity-50">Session Lobby</span>
+	</div>
+	<div class="navbar-end">
+		<ThemeToggle />
+	</div>
+</div>
+
+<!-- PRESENTER VIEW -->
+{#if hub.state?.role == ParticipantRole.Presenter}
+	<div class="mx-auto w-full max-w-4xl space-y-4 p-4 md:p-6">
+		<div class="card bg-base-100 shadow-md">
+			<div class="card-body">
+				<div class="flex flex-col items-center gap-6 md:flex-row">
+					<button
+						class="btn h-auto shrink-0 rounded-xl btn-ghost p-2"
+						aria-label="Open fullscreen QR code"
+						onclick={() => fullscreenQRModal?.showModal()}>
+						<canvas
+							bind:this={presenterCanvas}
+							style="image-rendering: pixelated; width: 128px; height: 128px; display: block;">
+						</canvas>
+					</button>
+
+					<div class="divider m-0 divider-vertical self-stretch md:divider-horizontal">
+					</div>
+
+					<div class="flex flex-1 flex-col gap-3 text-center md:text-left">
+						<div>
+							<p class="text-xs font-semibold tracking-widest uppercase opacity-50">
+								Join at
+							</p>
+							<p class="text-base font-bold">{page.url.origin}/live</p>
+						</div>
+						<div class="divider my-0"></div>
+						<div>
+							<p class="text-xs font-semibold tracking-widest uppercase opacity-50">
+								Room Code
+							</p>
+							<p class="font-mono text-5xl font-black tracking-widest text-primary">
+								{params.RoomCode}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="card bg-base-100 shadow-md">
+			<div class="card-body flex-row flex-wrap items-center justify-between gap-4">
+				<div class="flex min-w-0 items-center gap-3">
+					<div class="shrink-0">
+						<UserAvatar
+							size={12}
+							profilePictureUrl={hub.state?.presenter.profilePictureUrl} />
+					</div>
+					<div class="min-w-0">
+						<p class="truncate text-lg font-bold">{hub.state?.presenter.userName}</p>
+						<div class="mt-0.5 badge badge-sm badge-info">Presenter</div>
+					</div>
+				</div>
+				<button class="btn btn-lg btn-primary" onclick={startSession}>
+					<Play class="h-5 w-5" />
+					Start Session
+				</button>
+			</div>
+		</div>
+
+		{@render participantsList()}
+	</div>
+
+	<!-- PARTICIPANT VIEW -->
+{:else if hub.state?.role == ParticipantRole.Participant}
+	<div class="mx-auto w-full max-w-4xl p-4 md:p-6">
+		<div class="grid gap-4 md:grid-cols-2">
+			{@render customizationCard()}
+			{@render participantsList()}
+		</div>
+	</div>
+{/if}
+
+<dialog class="modal modal-bottom md:modal-middle" bind:this={fullscreenQRModal}>
+	<div class="modal-box flex w-full max-w-lg flex-col items-center gap-4 overflow-hidden p-6">
+		<h3 class="shrink-0 text-lg font-bold">Scan to Join</h3>
+		<canvas
+			bind:this={modalCanvas}
+			class="block min-h-0 flex-1"
+			style="image-rendering: pixelated; aspect-ratio: 1 / 1; max-width: 100%; width: auto;">
+		</canvas>
+		<p class="shrink-0 text-center text-sm opacity-60">
+			Or visit <span class="font-bold">{page.url.origin}/live</span> and enter room code
+			<span class="font-mono font-bold text-primary">{params.RoomCode}</span>
+		</p>
+		<div class="modal-action w-full shrink-0">
+			<form method="dialog" class="w-full">
+				<button class="btn btn-block btn-outline">Close</button>
+			</form>
+		</div>
+	</div>
 	<form method="dialog" class="modal-backdrop">
 		<button>close</button>
 	</form>
