@@ -1,0 +1,15 @@
+using AutoMapper;
+using Backend.Dto;
+using Backend.Models;
+
+namespace Backend.Mapper;
+
+public class ApiMappingProfile : Profile
+{
+    public ApiMappingProfile()
+    {
+        CreateMap<AnonymousUser, AnonymousUserDto>();
+        CreateMap<Session, CreateSessionResponseDto>();
+        CreateMap<AnonymousUserDto, AnonymousUser>();
+    }
+}

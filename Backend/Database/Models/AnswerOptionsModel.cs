@@ -9,10 +9,11 @@ public class AnswerOption
 
     public required int OrderId { get; set; }
 
+    [MaxLength(2048)]
     public required string Description { get; set; }
 
-    public Guid QuestionTemplateId { get; set; }
-    public required ChoiceQuestionTemplate QuestionTemplate { get; set; }
+    public required Guid QuestionTemplateId { get; set; }
+    public ChoiceQuestionTemplate? QuestionTemplate { get; set; }
 
-    public Answer? Answer;
+    public Answer? Answer { get; set; }
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Backend.Filters;
 using Backend.Hubs;
@@ -25,6 +26,8 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.DocumentFilter<IncludeEnumDocumentFilter>();
 });
+
+builder.Services.AddAutoMapper(opt => opt.AddMaps(Assembly.GetExecutingAssembly()));
 
 builder.Services.AddCors(options =>
 {
@@ -84,7 +87,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<DefaultHub>("/pollhub");
+app.MapHub<DefaultHub>("/defaulthub");
 
 using (var scope = app.Services.CreateScope())
 {

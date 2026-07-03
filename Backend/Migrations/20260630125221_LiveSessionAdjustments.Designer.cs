@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(StimmtiDbContext))]
-    [Migration("20260701092305_AdjustQuestionAnswerModel")]
-    partial class AdjustQuestionAnswerModel
+    [Migration("20260630125221_LiveSessionAdjustments")]
+    partial class LiveSessionAdjustments
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,9 @@ namespace Backend.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("AnonymousUserId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("Body")
@@ -41,6 +44,9 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AnonymousUserId")
+                        .IsUnique();
+
                     b.ToTable("AnonymousProfilePicture");
                 });
 
@@ -50,20 +56,18 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("CurrentConnectionId")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<Guid>("ProfilePictureId")
-                        .HasColumnType("char(36)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<Guid>("SessionId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProfilePictureId")
-                        .IsUnique();
 
                     b.HasIndex("SessionId");
 
@@ -79,23 +83,25 @@ namespace Backend.Migrations
                     b.Property<Guid>("AnonymousUserId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("AnswerOptionId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("QuestionTypeId")
-                        .HasColumnType("int");
+                    b.Property<string>("Text")
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AnonymousUserId");
 
+                    b.HasIndex("AnswerOptionId")
+                        .IsUnique();
+
                     b.HasIndex("QuestionId");
 
                     b.ToTable("Answer");
-
-                    b.HasDiscriminator<int>("QuestionTypeId");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Backend.Models.AnswerOption", b =>
@@ -187,13 +193,11 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("QuestionTypeId");
+
                     b.HasIndex("SurveyId");
 
                     b.ToTable("QuestionTemplates");
-
-                    b.HasDiscriminator<int>("QuestionTypeId");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Backend.Models.QuestionType", b =>
@@ -252,6 +256,9 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<int>("CurrentState")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2048)
@@ -261,6 +268,14 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("RoomActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RoomCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
 
                     b.Property<Guid>("SurveyId")
                         .HasColumnType("char(36)");
@@ -488,128 +503,24 @@ namespace Backend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Backend.Models.ChoiceAnswer", b =>
+            modelBuilder.Entity("Backend.Models.AnonymousProfilePicture", b =>
                 {
-                    b.HasBaseType("Backend.Models.Answer");
+                    b.HasOne("Backend.Models.AnonymousUser", "AnonymousUser")
+                        .WithOne("ProfilePicture")
+                        .HasForeignKey("Backend.Models.AnonymousProfilePicture", "AnonymousUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<Guid>("AnswerOptionId")
-                        .HasColumnType("char(36)");
-
-                    b.HasIndex("AnswerOptionId");
-                });
-
-            modelBuilder.Entity("Backend.Models.FreeTextAnswer", b =>
-                {
-                    b.HasBaseType("Backend.Models.Answer");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(2048)
-                        .HasColumnType("varchar(2048)");
-
-                    b.HasDiscriminator().HasValue(4);
-                });
-
-            modelBuilder.Entity("Backend.Models.NumberScaleAnswer", b =>
-                {
-                    b.HasBaseType("Backend.Models.Answer");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
-
-                    b.HasDiscriminator().HasValue(5);
-                });
-
-            modelBuilder.Entity("Backend.Models.WordCloudAnswer", b =>
-                {
-                    b.HasBaseType("Backend.Models.Answer");
-
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.ToTable("Answer", t =>
-                        {
-                            t.Property("Text")
-                                .HasColumnName("WordCloudAnswer_Text");
-                        });
-
-                    b.HasDiscriminator().HasValue(3);
-                });
-
-            modelBuilder.Entity("Backend.Models.ChoiceQuestionTemplate", b =>
-                {
-                    b.HasBaseType("Backend.Models.QuestionTemplate");
-                });
-
-            modelBuilder.Entity("Backend.Models.FreeTextQuestionTemplate", b =>
-                {
-                    b.HasBaseType("Backend.Models.QuestionTemplate");
-
-                    b.HasDiscriminator().HasValue(4);
-                });
-
-            modelBuilder.Entity("Backend.Models.NumberScaleQuestionTemplate", b =>
-                {
-                    b.HasBaseType("Backend.Models.QuestionTemplate");
-
-                    b.HasDiscriminator().HasValue(5);
-                });
-
-            modelBuilder.Entity("Backend.Models.WordCloudQuestionTemplate", b =>
-                {
-                    b.HasBaseType("Backend.Models.QuestionTemplate");
-
-                    b.HasDiscriminator().HasValue(3);
-                });
-
-            modelBuilder.Entity("Backend.Models.MultipleChoiceAnswer", b =>
-                {
-                    b.HasBaseType("Backend.Models.ChoiceAnswer");
-
-                    b.HasDiscriminator().HasValue(2);
-                });
-
-            modelBuilder.Entity("Backend.Models.SingleChoiceAnswer", b =>
-                {
-                    b.HasBaseType("Backend.Models.ChoiceAnswer");
-
-                    b.HasDiscriminator().HasValue(1);
-                });
-
-            modelBuilder.Entity("Backend.Models.MultipleChoiceQuestionTemplate", b =>
-                {
-                    b.HasBaseType("Backend.Models.ChoiceQuestionTemplate");
-
-                    b.HasDiscriminator().HasValue(2);
-                });
-
-            modelBuilder.Entity("Backend.Models.SingleChoiceQuestionTemplate", b =>
-                {
-                    b.HasBaseType("Backend.Models.ChoiceQuestionTemplate");
-
-                    b.HasDiscriminator().HasValue(1);
+                    b.Navigation("AnonymousUser");
                 });
 
             modelBuilder.Entity("Backend.Models.AnonymousUser", b =>
                 {
-                    b.HasOne("Backend.Models.AnonymousProfilePicture", "ProfilePicture")
-                        .WithOne("AnonymousUser")
-                        .HasForeignKey("Backend.Models.AnonymousUser", "ProfilePictureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Backend.Models.Session", "Session")
                         .WithMany("AnonymousParticipants")
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ProfilePicture");
 
                     b.Navigation("Session");
                 });
@@ -622,6 +533,10 @@ namespace Backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Backend.Models.AnswerOption", "AnswerOption")
+                        .WithOne("Answer")
+                        .HasForeignKey("Backend.Models.Answer", "AnswerOptionId");
+
                     b.HasOne("Backend.Models.Question", "Question")
                         .WithMany("Answers")
                         .HasForeignKey("QuestionId")
@@ -630,12 +545,14 @@ namespace Backend.Migrations
 
                     b.Navigation("AnonymousUser");
 
+                    b.Navigation("AnswerOption");
+
                     b.Navigation("Question");
                 });
 
             modelBuilder.Entity("Backend.Models.AnswerOption", b =>
                 {
-                    b.HasOne("Backend.Models.ChoiceQuestionTemplate", "QuestionTemplate")
+                    b.HasOne("Backend.Models.QuestionTemplate", "QuestionTemplate")
                         .WithMany("AnswerOptions")
                         .HasForeignKey("QuestionTemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -676,11 +593,19 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.QuestionTemplate", b =>
                 {
+                    b.HasOne("Backend.Models.QuestionType", "QuestionType")
+                        .WithMany("QuestionTemplates")
+                        .HasForeignKey("QuestionTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Backend.Models.Survey", "Survey")
                         .WithMany("QuestionTemplates")
                         .HasForeignKey("SurveyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("QuestionType");
 
                     b.Navigation("Survey");
                 });
@@ -700,7 +625,8 @@ namespace Backend.Migrations
                 {
                     b.HasOne("Backend.Models.Folder", "Folder")
                         .WithMany("Surveys")
-                        .HasForeignKey("FolderId");
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Backend.Models.User", "Owner")
                         .WithMany("Surveys")
@@ -764,26 +690,16 @@ namespace Backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Backend.Models.ChoiceAnswer", b =>
-                {
-                    b.HasOne("Backend.Models.AnswerOption", "AnswerOption")
-                        .WithMany()
-                        .HasForeignKey("AnswerOptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AnswerOption");
-                });
-
-            modelBuilder.Entity("Backend.Models.AnonymousProfilePicture", b =>
-                {
-                    b.Navigation("AnonymousUser")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Backend.Models.AnonymousUser", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("ProfilePicture");
+                });
+
+            modelBuilder.Entity("Backend.Models.AnswerOption", b =>
+                {
+                    b.Navigation("Answer");
                 });
 
             modelBuilder.Entity("Backend.Models.Folder", b =>
@@ -798,7 +714,14 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.QuestionTemplate", b =>
                 {
+                    b.Navigation("AnswerOptions");
+
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("Backend.Models.QuestionType", b =>
+                {
+                    b.Navigation("QuestionTemplates");
                 });
 
             modelBuilder.Entity("Backend.Models.Session", b =>
@@ -820,11 +743,6 @@ namespace Backend.Migrations
                     b.Navigation("Folders");
 
                     b.Navigation("Surveys");
-                });
-
-            modelBuilder.Entity("Backend.Models.ChoiceQuestionTemplate", b =>
-                {
-                    b.Navigation("AnswerOptions");
                 });
 #pragma warning restore 612, 618
         }

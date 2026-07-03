@@ -34,8 +34,6 @@ public class WordCloudAnswer : Answer
 {
     [MaxLength(255)]
     public required string Text { get; set; }
-
-    public required int Count { get; set; }
 }
 
 public class FreeTextAnswer : TextAnswer { }
