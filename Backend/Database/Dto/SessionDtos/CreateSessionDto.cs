@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+namespace Backend.Dto;
+
 public class CreateSessionDto
 {
     [MaxLength(255)]

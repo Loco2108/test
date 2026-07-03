@@ -1,5 +1,6 @@
 using AutoMapper;
 using Backend.Dto;
+using Backend.Hubs.Interfaces;
 using Backend.Models;
 using Backend.Models.Enums;
 using Backend.StaticHelpers;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Hubs;
 
-public class DefaultHub : Hub
+public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
 {
     private readonly UserManager<User> _userManager;
     private readonly StimmtiDbContext _context;
@@ -28,7 +29,9 @@ public class DefaultHub : Hub
     {
         var session = await _context.Sessions
             .Include(x => x.AnonymousParticipants)
+            .ThenInclude(x => x.ProfilePicture)
             .Include(x => x.Survey)
+            .ThenInclude(x => x.Owner)
             .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode);
 
         if (session == null || session.RoomActive == false) return null;
@@ -45,7 +48,9 @@ public class DefaultHub : Hub
                 SessionName = session.Name,
                 SessionDescription = session.Description,
                 Role = ParticipantRole.Presenter,
-                GameState = session.CurrentState
+                GameState = session.CurrentState,
+                Presenter = _mapper.Map<PresenterDto>(session.Survey!.Owner),
+                Participants = _mapper.Map<List<ParticipantDto>>(session.AnonymousParticipants)
             };
         }
 
@@ -79,6 +84,12 @@ public class DefaultHub : Hub
 
             await _context.AddAsync(anonProfilePicture);
             await _context.SaveChangesAsync();
+
+            await Clients.Group(data.RoomCode).ParticipantJoined(new ParticipantDto
+            {
+                Name = participant.Name,
+                ProfilePicture = _mapper.Map<AnonymousProfilePictureDto>(anonProfilePicture)
+            });
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, data.RoomCode);
@@ -90,6 +101,8 @@ public class DefaultHub : Hub
             Role = ParticipantRole.Participant,
             GameState = session.CurrentState,
             UserInformation = _mapper.Map<AnonymousUserDto>(participant),
+            Presenter = _mapper.Map<PresenterDto>(session.Survey!.Owner),
+            Participants = _mapper.Map<List<ParticipantDto>>(session.AnonymousParticipants)
         };
     }
 

@@ -348,6 +348,26 @@ export class Api<
     /**
      * No description
      *
+     * @tags Session
+     * @name V1SessionCheckSessionList
+     * @request GET:/api/v1/Session/checkSession
+     */
+    v1SessionCheckSessionList: (
+      query?: {
+        roomCode?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/Session/checkSession`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Survey
      * @name V1SurveyCreate
      * @request POST:/api/v1/Survey

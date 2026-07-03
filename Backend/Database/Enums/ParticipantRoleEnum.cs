@@ -1,6 +1,8 @@
-using TypeGen.Core.TypeAnnotations;
+using Tapper;
 
-[ExportTsEnum]
+namespace Backend.Models.Enums;
+
+[TranspilationSource]
 public enum ParticipantRole
 {
     Participant = 1,

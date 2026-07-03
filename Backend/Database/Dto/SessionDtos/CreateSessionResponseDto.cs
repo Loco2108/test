@@ -1,4 +1,4 @@
-using Backend.Models;
+namespace Backend.Dto;
 
 public class CreateSessionResponseDto
 {

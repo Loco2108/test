@@ -18,7 +18,7 @@
     <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.7" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
-    <PackageReference Include="TypeGen" Version="7.0.0" />
+    <PackageReference Include="TypedSignalR.Client.TypeScript.Attributes" Version="1.17.0" />
   </ItemGroup>
-
+  
 </Project>

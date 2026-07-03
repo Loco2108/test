@@ -1,8 +1,5 @@
-using TypeGen.Core.TypeAnnotations;
-
 namespace Backend.Models.Enums;
 
-[ExportTsEnum]
 public enum JoinSessionError
 {
     Unknown = 0,

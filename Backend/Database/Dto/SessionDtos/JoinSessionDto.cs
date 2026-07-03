@@ -1,7 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-using TypeGen.Core.TypeAnnotations;
+using Tapper;
 
-[ExportTsInterface]
+namespace Backend.Dto;
+
+[TranspilationSource]
 public class JoinSessionDto
 {
     public required string RoomCode { get; set; }

@@ -1,26 +1,44 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
+	import type { ProblemDetails } from '$lib/api';
+	import { apiClient } from '$lib/apiClient';
 	import { addToast } from '$lib/components/Toast/Toast.svelte';
 	import { SessionConnection } from '$lib/signalr.svelte';
-	import { ChevronLeft, QrCode } from '@lucide/svelte';
+	import { ChevronLeft, GitMergeConflict, QrCode } from '@lucide/svelte';
+	import axios from 'axios';
 	import { onMount } from 'svelte';
 
 	let hub = new SessionConnection();
 	let roomCode = $state('');
+	$effect(() => {
+		roomCode = roomCode.toUpperCase();
+	});
 
 	onMount(() => {
 		hub.init();
 	});
 
-	async function joinSession() {
+	async function checkSession() {
 		if (!roomCode.trim()) addToast({ label: 'No session code provided', type: 'error' });
 
-		let res = await hub.joinSession(roomCode);
+		try {
+			await apiClient.api.v1SessionCheckSessionList({ roomCode });
 
-		if (res) {
-			goto(`live/${roomCode}`);
-		} else {
-			addToast({ label: 'No active session with the given code was found', type: 'error' });
+			goto(`/live/${roomCode.trim()}`);
+		} catch (e) {
+			if (axios.isAxiosError<ProblemDetails>(e)) {
+				let data = e.response?.data;
+
+				if (data?.title && data?.detail) {
+					addToast({
+						label: `${data.title}: ${data.detail}`,
+						type: 'error',
+						icon: GitMergeConflict,
+					});
+				}
+			} else {
+				addToast({ label: 'Unknown error occured', type: 'error' });
+			}
 		}
 	}
 </script>
@@ -43,7 +61,7 @@
 				</p>
 
 				<div class="mt-4 card-actions w-full justify-end">
-					<form class="w-full" onsubmit={joinSession}>
+					<form class="w-full" onsubmit={checkSession}>
 						<fieldset class="fieldset">
 							<legend class="fieldset-legend">Room Code</legend>
 

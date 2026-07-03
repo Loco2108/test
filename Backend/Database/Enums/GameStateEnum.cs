@@ -1,8 +1,8 @@
-using TypeGen.Core.TypeAnnotations;
+using Tapper;
 
 namespace Backend.Models.Enums;
 
-[ExportTsEnum]
+[TranspilationSource]
 public enum GameState
 {
     Lobby = 1,

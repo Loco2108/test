@@ -2,7 +2,6 @@ using AutoMapper;
 using Backend.Dto;
 using Backend.Hubs;
 using Backend.Models;
-using Backend.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -102,5 +101,20 @@ public class SessionController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(_mapper.Map<CreateSessionResponseDto>(session));
+    }
+
+    [HttpGet("checkSession")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> CheckSession([FromQuery] string roomCode)
+    {
+        var session = await _context.Sessions.FirstOrDefaultAsync(x => x.RoomCode == roomCode.Trim());
+        if (session == null || session.RoomActive == false) return NotFound(new ProblemDetails
+        {
+            Title = "Room not available",
+            Detail = $"No active room with code {roomCode} could be found"
+        });
+
+        return Ok();
     }
 }

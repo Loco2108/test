@@ -1,5 +1,8 @@
+using Tapper;
+
 namespace Backend.Models.Enums;
 
+[TranspilationSource]
 public enum HatProfileEnum
 {
     Hat01 = 1,

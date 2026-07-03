@@ -12,10 +12,15 @@
 	} from '$lib/components/CustomizableAvatar.svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { getContext } from 'svelte';
-	import { Play, Save, User } from '@lucide/svelte';
+	import { Play, Save } from '@lucide/svelte';
 	import type { SessionContext } from './+layout.svelte';
 	import QRCode from 'qrcode';
 	import type { ClassValue } from 'svelte/elements';
+	import UserAvatar from '$lib/components/UserAvatar.svelte';
+	import { ParticipantRole } from '$lib/wsClient/Backend.Models.Enums.js';
+
+	let { data, params } = $props();
+	let hub = $derived(data.hub);
 
 	function randomEnumValue<T extends Record<string, string>>(enumObj: T): T[keyof T] {
 		const values = Object.values(enumObj) as T[keyof T][];
@@ -87,7 +92,6 @@
 		}
 	});
 
-	let { params } = $props();
 	const { startSession } = getContext<SessionContext>('session');
 </script>
 
@@ -118,14 +122,7 @@
 	</div>
 {/snippet}
 
-<!-- I AM JUST A DEBUG TOGGLE! REMOVE ME WHEN IMPLEMENTIG THE REAL THING -->
-<input
-	type="checkbox"
-	onchange={(e) => (e.currentTarget.checked ? (mode = 'presentator') : (mode = 'participant'))}
-	checked={mode === 'presentator'}
-	class="toggle" />
-
-{#if mode === 'presentator'}
+{#if hub.state?.role == ParticipantRole.Presenter}
 	<div class="flex w-full justify-center">
 		<div class="card bg-base-100 shadow card-md">
 			<div class="card-body">
@@ -139,13 +136,13 @@
 
 					<div>
 						<div>Room Code:</div>
-						<span class="text-6xl font-bold text-primary">{params.SessionId}</span>
+						<span class="text-6xl font-bold text-primary">{params.RoomCode}</span>
 					</div>
 
 					<div class="divider divider-vertical md:divider-horizontal"></div>
 
 					<button
-						class="btn h-full p-2 btn-ghost"
+						class="btn h-fit btn-ghost p-2"
 						aria-label="Fullscreen QR-Code"
 						onclick={() => fullscreenQRModal?.showModal()}>
 						<canvas
@@ -158,39 +155,34 @@
 		</div>
 	</div>
 
-	<div
-		class="mt-4 flex w-full flex-col items-stretch justify-center gap-2 md:flex-row md:items-stretch">
-		{@render customizationCard('')}
+	<div class="card mt-4 bg-base-100 card-md md:min-w-96">
+		<div class="card-body">
+			<h2 class="card-title">Settings</h2>
 
-		<div class="card bg-base-100 card-md md:min-w-96">
-			<div class="card-body">
-				<h2 class="card-title">Settings</h2>
-
-				<label class="flex cursor-pointer gap-2">
-					<input type="checkbox" class="toggle" />
-					<span class="label-text">Setting 1</span>
-				</label>
-				<label class="flex cursor-pointer gap-2">
-					<input type="checkbox" class="toggle" />
-					<span class="label-text">Setting 2</span>
-				</label>
-				<label class="flex cursor-pointer gap-2">
-					<input type="checkbox" class="toggle" checked />
-					<span class="label-text">Setting 3</span>
-				</label>
-				<fieldset class="fieldset">
-					<legend class="fieldset-legend">Setting 5</legend>
-					<input type="text" class="input w-full" />
-				</fieldset>
-				<fieldset class="fieldset">
-					<legend class="fieldset-legend">Setting 5</legend>
-					<input type="text" class="input w-full" />
-				</fieldset>
-				<button class="btn btn-block btn-outline btn-neutral">
-					<Save />
-					Save settings
-				</button>
-			</div>
+			<label class="flex cursor-pointer gap-2">
+				<input type="checkbox" class="toggle" />
+				<span class="label-text">Setting 1</span>
+			</label>
+			<label class="flex cursor-pointer gap-2">
+				<input type="checkbox" class="toggle" />
+				<span class="label-text">Setting 2</span>
+			</label>
+			<label class="flex cursor-pointer gap-2">
+				<input type="checkbox" class="toggle" checked />
+				<span class="label-text">Setting 3</span>
+			</label>
+			<fieldset class="fieldset">
+				<legend class="fieldset-legend">Setting 5</legend>
+				<input type="text" class="input w-full" />
+			</fieldset>
+			<fieldset class="fieldset">
+				<legend class="fieldset-legend">Setting 5</legend>
+				<input type="text" class="input w-full" />
+			</fieldset>
+			<button class="btn btn-block btn-outline btn-neutral">
+				<Save />
+				Save settings
+			</button>
 		</div>
 	</div>
 
@@ -206,32 +198,31 @@
 	</div>
 {/if}
 
-{#if mode === 'participant'}
+{#if hub.state?.role == ParticipantRole.Participant}
 	{@render customizationCard('w-fit mx-auto')}
 {/if}
 
 <ul class="list mx-auto mt-8 w-fit max-w-full rounded-box bg-base-100 shadow-md md:min-w-96">
 	<li class="p-4 pb-2 text-xs tracking-wide opacity-60">Participants</li>
 
-	{#if !mockUsers.length}
-		<li class="list-row flex items-center opacity-60">
-			<div class="avatar rounded-full bg-base-300 p-4">
-				<User />
-			</div>
-			<div class="truncate">No participants yet</div>
-		</li>
-	{/if}
+	<li class="list-row flex items-center">
+		<div class="shrink-0">
+			<UserAvatar size={15} profilePictureUrl={hub.state?.presenter.profilePictureUrl} />
+		</div>
+		<div class="min-w-0 flex-1 truncate text-2xl font-bold">
+			{hub.state?.presenter.userName}
+			<div class="badge badge-info">Presentator</div>
+		</div>
+	</li>
 
-	{#each mockUsers as user}
+	{#each hub.state?.participants as participant}
+		{@const profilePicture = participant.profilePicture}
 		<li class="list-row flex items-center">
 			<div class="shrink-0">
-				<CustomizableAvatar size={15} settings={user.settings} />
+				<CustomizableAvatar size={15} settings={profilePicture} />
 			</div>
 			<div class="min-w-0 flex-1 truncate text-2xl font-bold">
-				{user.name}
-				{#if user.isAdmin}
-					<div class="badge badge-info">Presentator</div>
-				{/if}
+				{participant.name}
 			</div>
 		</li>
 	{/each}
