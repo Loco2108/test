@@ -68,8 +68,9 @@
 									size={10}
 									settings={participant.profilePicture} />
 							</div>
-							<span class="min-w-0 flex-1 truncate font-medium"
-								>{participant.name}</span>
+							<span class="min-w-0 flex-1 truncate font-medium">
+								{participant.name}
+							</span>
 						</div>
 					{/each}
 				</div>
@@ -156,7 +157,8 @@
 		</div>
 
 		<div class="card bg-base-100 shadow-md">
-			<div class="card-body flex-row flex-wrap items-center justify-between gap-4">
+			<div
+				class="card-body flex-col flex-wrap items-center justify-between gap-4 md:flex-row">
 				<div class="flex min-w-0 items-center gap-3">
 					<div class="shrink-0">
 						<UserAvatar
@@ -168,8 +170,8 @@
 						<div class="mt-0.5 badge badge-sm badge-info">Presenter</div>
 					</div>
 				</div>
-				<button class="btn btn-lg btn-primary" onclick={startSession}>
-					<Play class="h-5 w-5" />
+				<button class="btn w-full btn-lg btn-primary md:w-fit" onclick={startSession}>
+					<Play />
 					Start Session
 				</button>
 			</div>
