@@ -64,7 +64,7 @@ public class SessionController : ControllerBase
                 if (j == 2) roomCode += "-";
             }
 
-            var existingSession = await _context.Sessions.FirstOrDefaultAsync(x => x.RoomCode == roomCode);
+            var existingSession = await _context.Sessions.FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
             if (existingSession == null) break;
             if (i == maxRetries - 1)
             {

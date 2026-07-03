@@ -129,7 +129,11 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         if (!string.IsNullOrWhiteSpace(data.Name))
         {
             var nameAlreadyExists = await _context.AnonymousUsers
-                .AnyAsync(x => x.Name.ToLower() == data.Name.Trim().ToLower());
+                .AnyAsync(p =>
+                    p.Session!.RoomCode == data.RoomCode &&
+                    p.Name.ToLower() == data.Name.Trim().ToLower() &&
+                    p.Id != data.AnonymousUserId
+                );
 
             if (nameAlreadyExists) return false;
 
