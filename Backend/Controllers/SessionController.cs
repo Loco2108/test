@@ -46,6 +46,9 @@ public class SessionController : ControllerBase
         if (survey == null)
             return BadRequest(new ProblemDetails { Title = "Survey not found", Detail = $"Survey with ID {data.SurveyId} doesn't exist" });
 
+        if (survey.QuestionTemplates.Count == 0)
+            return BadRequest(new ProblemDetails { Title = "Survey has no questions", Detail = $"Survey with ID {data.SurveyId} has no questions" });
+
         if (survey.OwnerId != user.Id)
             return Forbid();
 

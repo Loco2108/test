@@ -111,6 +111,9 @@
 		<div class="divider mx-1 divider-horizontal h-5 self-center"></div>
 		<span class="text-sm opacity-50">Session Lobby</span>
 	</div>
+	<div class="navbar-center font-bold opacity-80">
+		{hub.state?.sessionName}
+	</div>
 	<div class="navbar-end">
 		<ThemeToggle />
 	</div>

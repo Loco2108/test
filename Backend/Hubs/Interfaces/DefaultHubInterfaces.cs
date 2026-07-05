@@ -1,4 +1,5 @@
 using Backend.Dto;
+using Backend.Models.Enums;
 using TypedSignalR.Client;
 
 namespace Backend.Hubs.Interfaces;
@@ -7,8 +8,11 @@ namespace Backend.Hubs.Interfaces;
 public interface ISessionHub
 {
     Task<RestoreStateDto?> JoinSession(JoinSessionDto data);
-    Task LeaveRoom(string roomId);
+    Task LeaveRoom(string roomCode);
     Task<bool> UpdateParticipantData(ParticipantUpdateDto data);
+    Task<bool> StartSession(string roomCode);
+    Task<bool> NextQuestion(string roomCode);
+    Task<bool> CloseSession(string roomCode);
 }
 
 [Receiver]
@@ -16,4 +20,6 @@ public interface ISessionHubClient
 {
     Task ParticipantJoined(ParticipantDto data);
     Task ParticipantUpdated(ParticipantUpdateResponseDto data);
+    Task SessionStateChanged(SessionState newState);
+    Task QuestionChanged(QuestionTemplateDto data);
 }

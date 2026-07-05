@@ -33,9 +33,9 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             .ThenInclude(x => x.ProfilePicture)
             .Include(x => x.Survey)
             .ThenInclude(x => x!.Owner)
-            .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode);
+            .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode && x.RoomActive == true);
 
-        if (session == null || session.RoomActive == false) return null;
+        if (session == null) return null;
 
         var currentUserId = Context.UserIdentifier;
         bool isPresenter = currentUserId != null && session.Survey!.OwnerId.ToString() == currentUserId;
@@ -107,9 +107,9 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         };
     }
 
-    public async Task LeaveRoom(string roomId)
+    public async Task LeaveRoom(string roomCode)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomCode);
     }
 
     public async Task<bool> UpdateParticipantData(ParticipantUpdateDto data)
@@ -155,5 +155,37 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         });
 
         return true;
+    }
+
+    public async Task<bool> StartSession(string roomCode)
+    {
+        var session = await _context.Sessions
+            .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
+            .ThenInclude(x => x.QuestionTemplate)
+            .Include(x => x.Questions)
+            .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
+            .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
+        if (session == null) return false;
+
+        var currentUserId = Context.UserIdentifier;
+        if (currentUserId == null || session.Survey!.OwnerId.ToString() != currentUserId) return false;
+
+        if (session.Questions.Count == 0) return false;
+
+        await Clients.Group(roomCode).SessionStateChanged(SessionState.Loading);
+        await Clients.Group(roomCode).QuestionChanged(_mapper.Map<QuestionTemplateDto>(session.Questions.First().QuestionTemplate));
+        await Clients.Group(roomCode).SessionStateChanged(SessionState.Question);
+
+        return true;
+    }
+
+    public Task<bool> NextQuestion(string roomCode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> CloseSession(string roomCode)
+    {
+        throw new NotImplementedException();
     }
 }

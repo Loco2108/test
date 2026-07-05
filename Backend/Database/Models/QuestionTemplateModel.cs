@@ -32,6 +32,7 @@ public abstract class QuestionTemplate
     public List<Question> Questions { get; } = new List<Question>();
 
     public required int OrderNumber { get; set; }
+    public bool IsArchived { get; set; } = false;
 }
 
 public abstract class ChoiceQuestionTemplate : QuestionTemplate
