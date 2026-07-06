@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
-using AutoMapper;
 using Backend.Dto;
 using Backend.Hubs.Interfaces;
+using Backend.Mapper;
 using Backend.Models;
 using Backend.Models.Enums;
 using Backend.StaticHelpers;
@@ -16,9 +16,9 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
     private readonly UserManager<User> _userManager;
     private readonly StimmtiDbContext _context;
     private readonly ILogger<DefaultHub> _logger;
-    private readonly IMapper _mapper;
+    private readonly IApiMapper _mapper;
 
-    public DefaultHub(UserManager<User> userManager, StimmtiDbContext context, ILogger<DefaultHub> logger, IMapper mapper)
+    public DefaultHub(UserManager<User> userManager, StimmtiDbContext context, ILogger<DefaultHub> logger, IApiMapper mapper)
     {
         _userManager = userManager;
         _context = context;
@@ -50,8 +50,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
                 SessionDescription = session.Description,
                 Role = ParticipantRole.Presenter,
                 SessionState = session.CurrentState,
-                Presenter = _mapper.Map<PresenterDto>(session.Survey!.Owner),
-                Participants = _mapper.Map<List<ParticipantDto>>(session.AnonymousParticipants)
+                Presenter = _mapper.MapToPresenterDto(session.Survey!.Owner!),
+                Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants)
             };
         }
 
@@ -89,7 +89,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             await Clients.Group(data.RoomCode).ParticipantJoined(new ParticipantDto
             {
                 Name = participant.Name,
-                ProfilePicture = _mapper.Map<AnonymousProfilePictureDto>(anonProfilePicture)
+                ProfilePicture = _mapper.MapToAnonymousProfilePictureDto(anonProfilePicture)
             });
         }
 
@@ -101,9 +101,9 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             SessionDescription = session.Description,
             Role = ParticipantRole.Participant,
             SessionState = session.CurrentState,
-            UserInformation = _mapper.Map<AnonymousUserDto>(participant),
-            Presenter = _mapper.Map<PresenterDto>(session.Survey!.Owner),
-            Participants = _mapper.Map<List<ParticipantDto>>(session.AnonymousParticipants)
+            UserInformation = _mapper.MapToAnonymousUserDto(participant),
+            Presenter = _mapper.MapToPresenterDto(session.Survey!.Owner!),
+            Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants)
         };
     }
 
@@ -142,7 +142,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
 
         if (data.ProfilePicture != null)
         {
-            _mapper.Map(data.ProfilePicture, participant.ProfilePicture);
+            _mapper.UpdateAnonymousProfilePicture(data.ProfilePicture, participant.ProfilePicture!);
         }
 
         await _context.SaveChangesAsync();
@@ -151,7 +151,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         {
             OldName = oldName,
             NewName = participant.Name,
-            ProfilePicture = _mapper.Map<AnonymousProfilePictureDto>(participant.ProfilePicture)
+            ProfilePicture = _mapper.MapToAnonymousProfilePictureDto(participant.ProfilePicture!)
         });
 
         return true;
@@ -173,7 +173,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         if (session.Questions.Count == 0) return false;
 
         await Clients.Group(roomCode).SessionStateChanged(SessionState.Loading);
-        await Clients.Group(roomCode).QuestionChanged(_mapper.Map<QuestionTemplateDto>(session.Questions.First().QuestionTemplate));
+        await Clients.Group(roomCode).QuestionChanged(_mapper.MapToQuestionTemplateDto(session.Questions.First().QuestionTemplate!));
         await Clients.Group(roomCode).SessionStateChanged(SessionState.Question);
 
         return true;

@@ -1,7 +1,7 @@
-using System.Reflection;
 using System.Text.Json.Serialization;
 using Backend.Filters;
 using Backend.Hubs;
+using Backend.Mapper;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,7 @@ builder.Services.AddSwaggerGen(c =>
     c.DocumentFilter<IncludeEnumDocumentFilter>();
 });
 
-builder.Services.AddAutoMapper(opt => opt.AddMaps(Assembly.GetExecutingAssembly()));
+builder.Services.AddSingleton<IApiMapper, ApiMapper>();
 
 builder.Services.AddCors(options =>
 {

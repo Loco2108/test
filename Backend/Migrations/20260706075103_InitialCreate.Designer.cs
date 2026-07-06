@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(StimmtiDbContext))]
-    [Migration("20260703151647_InitialCreate")]
+    [Migration("20260706075103_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -113,7 +113,10 @@ namespace Backend.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("varchar(2048)");
 
-                    b.Property<int>("OrderId")
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("OrderNumber")
                         .HasColumnType("int");
 
                     b.Property<Guid>("QuestionTemplateId")
@@ -179,6 +182,9 @@ namespace Backend.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(2048)
                         .HasColumnType("varchar(2048)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .IsRequired()

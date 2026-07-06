@@ -225,6 +225,7 @@ namespace Backend.Migrations
                     Description = table.Column<string>(type: "varchar(2048)", maxLength: 2048, nullable: true),
                     SurveyId = table.Column<Guid>(type: "char(36)", nullable: false),
                     OrderNumber = table.Column<int>(type: "int", nullable: false),
+                    IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     QuestionTypeId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -337,10 +338,11 @@ namespace Backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    OrderNumber = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "varchar(2048)", maxLength: 2048, nullable: false),
                     QuestionTemplateId = table.Column<Guid>(type: "char(36)", nullable: false),
-                    AnswerId = table.Column<Guid>(type: "char(36)", nullable: true)
+                    AnswerId = table.Column<Guid>(type: "char(36)", nullable: true),
+                    IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {

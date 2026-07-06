@@ -1,6 +1,6 @@
-using AutoMapper;
 using Backend.Dto;
 using Backend.Hubs;
+using Backend.Mapper;
 using Backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,10 +15,10 @@ public class SessionController : ControllerBase
     private readonly StimmtiDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly ILogger<UserController> _logger;
-    private readonly IMapper _mapper;
+    private readonly IApiMapper _mapper;
     private readonly IHubContext<DefaultHub> _hubContext;
 
-    public SessionController(StimmtiDbContext context, UserManager<User> userManager, ILogger<UserController> logger, IMapper mapper, IHubContext<DefaultHub> hubContext)
+    public SessionController(StimmtiDbContext context, UserManager<User> userManager, ILogger<UserController> logger, IApiMapper mapper, IHubContext<DefaultHub> hubContext)
     {
         _context = context;
         _userManager = userManager;
@@ -103,7 +103,7 @@ public class SessionController : ControllerBase
         _context.Sessions.Add(session);
         await _context.SaveChangesAsync();
 
-        return Ok(_mapper.Map<CreateSessionResponseDto>(session));
+        return Ok(_mapper.MapToCreateSessionResponseDto(session));
     }
 
     [HttpGet("checkSession")]
