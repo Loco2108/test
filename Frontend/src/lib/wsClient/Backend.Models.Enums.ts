@@ -44,10 +44,20 @@ export enum ParticipantRole {
     Presenter = "Presenter",
 }
 
+/** Transpiled from Backend.Models.Enums.QuestionTypeEnum */
+export enum QuestionTypeEnum {
+    SingleChoice = "SingleChoice",
+    MultipleChoice = "MultipleChoice",
+    WordCloud = "WordCloud",
+    FreeText = "FreeText",
+    NumberScale = "NumberScale",
+}
+
 /** Transpiled from Backend.Models.Enums.SessionState */
 export enum SessionState {
     Lobby = "Lobby",
     Loading = "Loading",
     Question = "Question",
+    Finished = "Finished",
 }
 

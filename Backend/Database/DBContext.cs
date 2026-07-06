@@ -50,6 +50,11 @@ public class StimmtiDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .WithMany(x => x.Sessions)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Session>()
+            .HasOne(x => x.CurrentQuestion)
+            .WithMany()
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Entity<QuestionTemplate>()
             .HasDiscriminator<QuestionTypeEnum>("QuestionTypeId")
             .HasValue<SingleChoiceQuestionTemplate>(QuestionTypeEnum.SingleChoice)

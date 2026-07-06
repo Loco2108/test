@@ -24,6 +24,9 @@ public class Session
     public required Guid SurveyId { get; set; }
     public Survey? Survey { get; set; }
 
+    public Guid? CurrentQuestionId { get; set; }
+    public Question? CurrentQuestion { get; set; }
+
     public List<AnonymousUser> AnonymousParticipants { get; } = new List<AnonymousUser>();
     public List<Question> Questions { get; } = new List<Question>();
 }

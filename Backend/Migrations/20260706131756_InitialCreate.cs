@@ -226,7 +226,9 @@ namespace Backend.Migrations
                     SurveyId = table.Column<Guid>(type: "char(36)", nullable: false),
                     OrderNumber = table.Column<int>(type: "int", nullable: false),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    QuestionTypeId = table.Column<int>(type: "int", nullable: false)
+                    QuestionTypeId = table.Column<int>(type: "int", nullable: false),
+                    MinValue = table.Column<int>(type: "int", nullable: true),
+                    MaxValue = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -235,76 +237,6 @@ namespace Backend.Migrations
                         name: "FK_QuestionTemplates_Surveys_SurveyId",
                         column: x => x.SurveyId,
                         principalTable: "Surveys",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Sessions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "varchar(2048)", maxLength: 2048, nullable: true),
-                    RoomCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false),
-                    RoomActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    CurrentState = table.Column<int>(type: "int", nullable: false),
-                    SurveyId = table.Column<Guid>(type: "char(36)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Sessions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Sessions_Surveys_SurveyId",
-                        column: x => x.SurveyId,
-                        principalTable: "Surveys",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "AnonymousUsers",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    Name = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
-                    SessionId = table.Column<Guid>(type: "char(36)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AnonymousUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AnonymousUsers_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Questions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
-                    SessionId = table.Column<Guid>(type: "char(36)", nullable: false),
-                    QuestionTemplateId = table.Column<Guid>(type: "char(36)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Questions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Questions_QuestionTemplates_QuestionTemplateId",
-                        column: x => x.QuestionTemplateId,
-                        principalTable: "QuestionTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Questions_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -324,12 +256,20 @@ namespace Backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AnonymousProfilePictures", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AnonymousProfilePictures_AnonymousUsers_AnonymousUserId",
-                        column: x => x.AnonymousUserId,
-                        principalTable: "AnonymousUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "AnonymousUsers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
+                    Name = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
+                    SessionId = table.Column<Guid>(type: "char(36)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AnonymousUsers", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -384,10 +324,55 @@ namespace Backend.Migrations
                         principalTable: "AnswerOptions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Questions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
+                    SessionId = table.Column<Guid>(type: "char(36)", nullable: false),
+                    QuestionTemplateId = table.Column<Guid>(type: "char(36)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Answers_Questions_QuestionId",
-                        column: x => x.QuestionId,
+                        name: "FK_Questions_QuestionTemplates_QuestionTemplateId",
+                        column: x => x.QuestionTemplateId,
+                        principalTable: "QuestionTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Sessions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false),
+                    Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
+                    Description = table.Column<string>(type: "varchar(2048)", maxLength: 2048, nullable: true),
+                    RoomCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false),
+                    RoomActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CurrentState = table.Column<int>(type: "int", nullable: false),
+                    SurveyId = table.Column<Guid>(type: "char(36)", nullable: false),
+                    CurrentQuestionId = table.Column<Guid>(type: "char(36)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Questions_CurrentQuestionId",
+                        column: x => x.CurrentQuestionId,
                         principalTable: "Questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Surveys_SurveyId",
+                        column: x => x.SurveyId,
+                        principalTable: "Surveys",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -487,6 +472,11 @@ namespace Backend.Migrations
                 column: "SurveyId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_CurrentQuestionId",
+                table: "Sessions",
+                column: "CurrentQuestionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sessions_SurveyId",
                 table: "Sessions",
                 column: "SurveyId");
@@ -502,11 +492,43 @@ namespace Backend.Migrations
                 column: "OwnerId");
 
             migrationBuilder.AddForeignKey(
+                name: "FK_AnonymousProfilePictures_AnonymousUsers_AnonymousUserId",
+                table: "AnonymousProfilePictures",
+                column: "AnonymousUserId",
+                principalTable: "AnonymousUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AnonymousUsers_Sessions_SessionId",
+                table: "AnonymousUsers",
+                column: "SessionId",
+                principalTable: "Sessions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_AnswerOptions_Answers_AnswerId",
                 table: "AnswerOptions",
                 column: "AnswerId",
                 principalTable: "Answers",
                 principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Answers_Questions_QuestionId",
+                table: "Answers",
+                column: "QuestionId",
+                principalTable: "Questions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Questions_Sessions_SessionId",
+                table: "Questions",
+                column: "SessionId",
+                principalTable: "Sessions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />

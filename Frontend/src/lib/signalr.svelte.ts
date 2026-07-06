@@ -9,6 +9,8 @@ import type {
 	RestoreStateDto,
 } from './wsClient/Backend.Dto';
 import { getHubProxyFactory, getReceiverRegister } from './wsClient/TypedSignalR.Client';
+import { goto } from '$app/navigation';
+import { ParticipantRole } from './wsClient/Backend.Models.Enums';
 
 export class SessionConnection {
 	private readonly baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5202';
@@ -31,6 +33,12 @@ export class SessionConnection {
 
 		this.sessionHub = getHubProxyFactory('ISessionHub').createHubProxy(this.connection);
 
+		this.connection.onreconnected(() => {
+			if (!this.currentRoomCode) return;
+
+			this.joinSession(this.currentRoomCode);
+		});
+
 		const receiver: ISessionHubClient = {
 			participantJoined: async (data) => {
 				this.state?.participants.push(data);
@@ -41,6 +49,22 @@ export class SessionConnection {
 
 				par.name = data.newName;
 				par.profilePicture = data.profilePicture;
+			},
+			sessionStateChanged: async (data) => {
+				if (!this.state) return;
+				this.state.sessionState = data;
+			},
+			questionChanged: async (data) => {
+				if (!this.state) return;
+				this.state.currentQuestion = data;
+			},
+			sessionClosed: async () => {
+				if (this.state?.role === ParticipantRole.Participant) {
+					goto('/live');
+					return;
+				}
+
+				goto(`/app/sessions/${this.state?.sessionId}`);
 			},
 		};
 
@@ -101,6 +125,30 @@ export class SessionConnection {
 			name,
 			profilePicture,
 		});
+
+		return res;
+	}
+
+	async startSession() {
+		if (!this.currentRoomCode || !this.connected) return false;
+
+		let res = await this.sessionHub.startSession(this.currentRoomCode);
+
+		return res;
+	}
+
+	async nextQuestion() {
+		if (!this.currentRoomCode || !this.connected) return false;
+
+		let res = await this.sessionHub.nextQuestion(this.currentRoomCode);
+
+		return res;
+	}
+
+	async closeSession() {
+		if (!this.currentRoomCode || !this.connected) return false;
+
+		let res = await this.sessionHub.closeSession(this.currentRoomCode);
 
 		return res;
 	}

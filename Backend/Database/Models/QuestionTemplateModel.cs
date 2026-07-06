@@ -48,4 +48,8 @@ public class WordCloudQuestionTemplate : QuestionTemplate { }
 
 public class FreeTextQuestionTemplate : QuestionTemplate { }
 
-public class NumberScaleQuestionTemplate : QuestionTemplate { }
+public class NumberScaleQuestionTemplate : QuestionTemplate
+{
+    public int MinValue { get; set; } = 1;
+    public int MaxValue { get; set; } = 10;
+}

@@ -8,4 +8,5 @@ public enum SessionState
     Lobby = 1,
     Loading,
     Question,
+    Finished,
 }

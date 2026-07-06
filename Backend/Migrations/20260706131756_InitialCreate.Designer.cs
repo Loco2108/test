@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(StimmtiDbContext))]
-    [Migration("20260706075103_InitialCreate")]
+    [Migration("20260706131756_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -217,6 +217,9 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("CurrentQuestionId")
+                        .HasColumnType("char(36)");
+
                     b.Property<int>("CurrentState")
                         .HasColumnType("int");
 
@@ -241,6 +244,8 @@ namespace Backend.Migrations
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrentQuestionId");
 
                     b.HasIndex("SurveyId");
 
@@ -538,6 +543,12 @@ namespace Backend.Migrations
                 {
                     b.HasBaseType("Backend.Models.QuestionTemplate");
 
+                    b.Property<int>("MaxValue")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinValue")
+                        .HasColumnType("int");
+
                     b.HasDiscriminator().HasValue(5);
                 });
 
@@ -677,11 +688,18 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Session", b =>
                 {
+                    b.HasOne("Backend.Models.Question", "CurrentQuestion")
+                        .WithMany()
+                        .HasForeignKey("CurrentQuestionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Backend.Models.Survey", "Survey")
                         .WithMany("Sessions")
                         .HasForeignKey("SurveyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CurrentQuestion");
 
                     b.Navigation("Survey");
                 });

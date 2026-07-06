@@ -4,7 +4,8 @@
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
 import type { ISessionHub, ISessionHubClient } from './Backend.Hubs.Interfaces';
-import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto } from '../Backend.Dto';
+import type { SessionState } from '../Backend.Models.Enums';
 
 
 // components
@@ -84,12 +85,24 @@ class ISessionHub_HubProxy implements ISessionHub {
         return await this.connection.invoke("JoinSession", data);
     }
 
-    public readonly leaveRoom = async (roomId: string): Promise<void> => {
-        return await this.connection.invoke("LeaveRoom", roomId);
+    public readonly leaveRoom = async (roomCode: string): Promise<void> => {
+        return await this.connection.invoke("LeaveRoom", roomCode);
     }
 
     public readonly updateParticipantData = async (data: ParticipantUpdateDto): Promise<boolean> => {
         return await this.connection.invoke("UpdateParticipantData", data);
+    }
+
+    public readonly startSession = async (roomCode: string): Promise<boolean> => {
+        return await this.connection.invoke("StartSession", roomCode);
+    }
+
+    public readonly nextQuestion = async (roomCode: string): Promise<boolean> => {
+        return await this.connection.invoke("NextQuestion", roomCode);
+    }
+
+    public readonly closeSession = async (roomCode: string): Promise<boolean> => {
+        return await this.connection.invoke("CloseSession", roomCode);
     }
 }
 
@@ -107,13 +120,22 @@ class ISessionHubClient_Binder implements ReceiverRegister<ISessionHubClient> {
 
         const __participantJoined = (...args: [ParticipantDto]) => receiver.participantJoined(...args);
         const __participantUpdated = (...args: [ParticipantUpdateResponseDto]) => receiver.participantUpdated(...args);
+        const __sessionStateChanged = (...args: [SessionState]) => receiver.sessionStateChanged(...args);
+        const __questionChanged = (...args: [QuestionTemplateDto]) => receiver.questionChanged(...args);
+        const __sessionClosed = () => receiver.sessionClosed();
 
         connection.on("ParticipantJoined", __participantJoined);
         connection.on("ParticipantUpdated", __participantUpdated);
+        connection.on("SessionStateChanged", __sessionStateChanged);
+        connection.on("QuestionChanged", __questionChanged);
+        connection.on("SessionClosed", __sessionClosed);
 
         const methodList: ReceiverMethod[] = [
             { methodName: "ParticipantJoined", method: __participantJoined },
-            { methodName: "ParticipantUpdated", method: __participantUpdated }
+            { methodName: "ParticipantUpdated", method: __participantUpdated },
+            { methodName: "SessionStateChanged", method: __sessionStateChanged },
+            { methodName: "QuestionChanged", method: __questionChanged },
+            { methodName: "SessionClosed", method: __sessionClosed }
         ]
 
         return new ReceiverMethodSubscription(connection, methodList);

@@ -75,6 +75,13 @@ export interface CreateSurveyDto {
   folderId?: string | null;
 }
 
+export interface CreateSurveyResponseDto {
+  /** @format uuid */
+  surveyId: string;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
 export interface IdentityError {
   code?: string | null;
   description?: string | null;
@@ -373,11 +380,12 @@ export class Api<
      * @request POST:/api/v1/Survey
      */
     v1SurveyCreate: (data: CreateSurveyDto, params: RequestParams = {}) =>
-      this.request<any, ProblemDetails>({
+      this.request<CreateSurveyResponseDto, ProblemDetails>({
         path: `/api/v1/Survey`,
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 

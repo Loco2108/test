@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Backend.Dto;
 using Backend.Hubs.Interfaces;
 using Backend.Mapper;
@@ -33,6 +32,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             .ThenInclude(x => x.ProfilePicture)
             .Include(x => x.Survey)
             .ThenInclude(x => x!.Owner)
+            .Include(x => x.CurrentQuestion)
+            .ThenInclude(x => x.QuestionTemplate)
             .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode && x.RoomActive == true);
 
         if (session == null) return null;
@@ -46,12 +47,16 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
 
             return new RestoreStateDto
             {
+                SessionId = session.Id,
                 SessionName = session.Name,
                 SessionDescription = session.Description,
                 Role = ParticipantRole.Presenter,
                 SessionState = session.CurrentState,
                 Presenter = _mapper.MapToPresenterDto(session.Survey!.Owner!),
-                Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants)
+                Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants),
+                CurrentQuestion = session.CurrentQuestion?.QuestionTemplate != null
+                    ? _mapper.MapToQuestionTemplateDto(session.CurrentQuestion.QuestionTemplate)
+                    : null
             };
         }
 
@@ -103,7 +108,10 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             SessionState = session.CurrentState,
             UserInformation = _mapper.MapToAnonymousUserDto(participant),
             Presenter = _mapper.MapToPresenterDto(session.Survey!.Owner!),
-            Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants)
+            Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants),
+            CurrentQuestion = session.CurrentQuestion?.QuestionTemplate != null
+                ? _mapper.MapToQuestionTemplateDto(session.CurrentQuestion.QuestionTemplate)
+                : null
         };
     }
 
@@ -162,8 +170,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         var session = await _context.Sessions
             .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
             .ThenInclude(x => x.QuestionTemplate)
-            .Include(x => x.Questions)
-            .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
+            .Include(x => x.AnonymousParticipants)
+            .Include(x => x.Survey)
             .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
         if (session == null) return false;
 
@@ -171,21 +179,87 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         if (currentUserId == null || session.Survey!.OwnerId.ToString() != currentUserId) return false;
 
         if (session.Questions.Count == 0) return false;
+        if (session.AnonymousParticipants.Count == 0) return false;
 
         await Clients.Group(roomCode).SessionStateChanged(SessionState.Loading);
-        await Clients.Group(roomCode).QuestionChanged(_mapper.MapToQuestionTemplateDto(session.Questions.First().QuestionTemplate!));
+
+        session.CurrentState = SessionState.Loading;
+        await _context.SaveChangesAsync();
+
+        var firstQuestion = session.Questions.First();
+        await Clients.Group(roomCode).QuestionChanged(_mapper.MapToQuestionTemplateDto(firstQuestion.QuestionTemplate!));
+
+        session.CurrentState = SessionState.Question;
+        session.CurrentQuestionId = firstQuestion.Id;
+        await _context.SaveChangesAsync();
+
+        await Task.Delay(3000);
+
         await Clients.Group(roomCode).SessionStateChanged(SessionState.Question);
 
         return true;
     }
 
-    public Task<bool> NextQuestion(string roomCode)
+    public async Task<bool> NextQuestion(string roomCode)
     {
-        throw new NotImplementedException();
+        var session = await _context.Sessions
+            .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
+            .ThenInclude(x => x.QuestionTemplate)
+            .Include(x => x.Survey)
+            .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
+        if (session == null || session.Questions.Count == 0) return false;
+
+        var currentUserId = Context.UserIdentifier;
+        if (currentUserId == null || session.Survey!.OwnerId.ToString() != currentUserId) return false;
+        if (session.CurrentQuestion == null) return false;
+
+        var currentIndex = session.Questions.FindIndex(q => q.Id == session.CurrentQuestionId);
+        if (currentIndex == -1) return false;
+
+        // Last question
+        if (currentIndex == session.Questions.Count - 1)
+        {
+            await Clients.Group(roomCode).SessionStateChanged(SessionState.Finished);
+
+            session.CurrentState = SessionState.Finished;
+            session.CurrentQuestionId = null;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // Load next question
+        await Clients.Group(roomCode).SessionStateChanged(SessionState.Loading);
+
+        var nextQuestion = session.Questions[currentIndex + 1];
+        await Clients.Group(roomCode).QuestionChanged(_mapper.MapToQuestionTemplateDto(nextQuestion.QuestionTemplate!));
+
+        session.CurrentQuestionId = nextQuestion.Id;
+        await _context.SaveChangesAsync();
+
+        await Task.Delay(1000);
+
+        await Clients.Group(roomCode).SessionStateChanged(SessionState.Question);
+
+        return true;
     }
 
-    public Task<bool> CloseSession(string roomCode)
+    public async Task<bool> CloseSession(string roomCode)
     {
-        throw new NotImplementedException();
+        var session = await _context.Sessions
+            .Include(x => x.Survey)
+            .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
+        if (session == null) return false;
+
+        var currentUserId = Context.UserIdentifier;
+        if (currentUserId == null || session.Survey!.OwnerId.ToString() != currentUserId) return false;
+
+        session.RoomActive = false;
+        session.CurrentQuestion = null;
+        await _context.SaveChangesAsync();
+
+        await Clients.Group(roomCode).SessionClosed();
+
+        return true;
     }
 }

@@ -3,7 +3,8 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
-import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto } from '../Backend.Dto';
+import type { SessionState } from '../Backend.Models.Enums';
 
 export type ISessionHub = {
     /**
@@ -12,15 +13,30 @@ export type ISessionHub = {
     */
     joinSession(data: JoinSessionDto): Promise<RestoreStateDto>;
     /**
-    * @param roomId Transpiled from string
+    * @param roomCode Transpiled from string
     * @returns Transpiled from System.Threading.Tasks.Task
     */
-    leaveRoom(roomId: string): Promise<void>;
+    leaveRoom(roomCode: string): Promise<void>;
     /**
     * @param data Transpiled from Backend.Dto.ParticipantUpdateDto
     * @returns Transpiled from System.Threading.Tasks.Task<bool>
     */
     updateParticipantData(data: ParticipantUpdateDto): Promise<boolean>;
+    /**
+    * @param roomCode Transpiled from string
+    * @returns Transpiled from System.Threading.Tasks.Task<bool>
+    */
+    startSession(roomCode: string): Promise<boolean>;
+    /**
+    * @param roomCode Transpiled from string
+    * @returns Transpiled from System.Threading.Tasks.Task<bool>
+    */
+    nextQuestion(roomCode: string): Promise<boolean>;
+    /**
+    * @param roomCode Transpiled from string
+    * @returns Transpiled from System.Threading.Tasks.Task<bool>
+    */
+    closeSession(roomCode: string): Promise<boolean>;
 }
 
 export type ISessionHubClient = {
@@ -34,5 +50,19 @@ export type ISessionHubClient = {
     * @returns Transpiled from System.Threading.Tasks.Task
     */
     participantUpdated(data: ParticipantUpdateResponseDto): Promise<void>;
+    /**
+    * @param newState Transpiled from Backend.Models.Enums.SessionState
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    sessionStateChanged(newState: SessionState): Promise<void>;
+    /**
+    * @param data Transpiled from Backend.Dto.QuestionTemplateDto
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    questionChanged(data: QuestionTemplateDto): Promise<void>;
+    /**
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    sessionClosed(): Promise<void>;
 }
 
