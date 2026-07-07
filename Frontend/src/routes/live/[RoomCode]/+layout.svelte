@@ -143,12 +143,12 @@
 	</div>
 {:else if phase === SessionState.Question}
 	<div in:fade={{ duration: 400 }} out:fade={{ duration: 400 }}>
-		<h1 class="mx-auto mt-8 w-fit text-center text-5xl font-bold text-balance">
+		<h1 class="mx-auto mt-8 w-fit px-4 text-center text-5xl font-bold text-balance">
 			{hub.state?.currentQuestion?.name}
 		</h1>
 
 		{#if hub.state?.currentQuestion?.description}
-			<p class="mx-auto mt-4 w-fit text-center text-3xl opacity-80">
+			<p class="mx-auto mt-4 w-fit px-4 text-center text-3xl opacity-80">
 				{hub.state.currentQuestion.description}
 			</p>
 		{/if}
@@ -169,12 +169,12 @@
 			{:else if hub.state.currentQuestion?.questionType === QuestionTypeEnum.SingleChoice}
 				<SingleChoice class="mx-auto" options={choiceOptions} />
 			{:else if hub.state.currentQuestion?.questionType === QuestionTypeEnum.WordCloud}
-				<fieldset class="mx-auto fieldset w-full md:max-w-120">
+				<fieldset class="mx-auto fieldset w-[calc(100%-2rem)] md:max-w-120">
 					<legend class="fieldset-legend text-lg">Describe in one word</legend>
 					<input type="text" class="input w-full" placeholder="Exciting" />
 				</fieldset>
 			{:else if hub.state.currentQuestion?.questionType === QuestionTypeEnum.FreeText}
-				<fieldset class="mx-auto fieldset w-full md:max-w-120">
+				<fieldset class="mx-auto fieldset w-[calc(100%-2rem)] md:max-w-120">
 					<legend class="fieldset-legend text-lg">Enter your thoughts</legend>
 					<textarea class="textarea w-full"></textarea>
 				</fieldset>

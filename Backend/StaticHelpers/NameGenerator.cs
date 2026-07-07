@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Routing.Patterns;
-
 namespace Backend.StaticHelpers;
 
 public static class NameGenerator
