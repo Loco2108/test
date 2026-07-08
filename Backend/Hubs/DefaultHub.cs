@@ -4,7 +4,6 @@ using Backend.Mapper;
 using Backend.Models;
 using Backend.Models.Enums;
 using Backend.StaticHelpers;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,14 +11,12 @@ namespace Backend.Hubs;
 
 public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
 {
-    private readonly UserManager<User> _userManager;
     private readonly StimmtiDbContext _context;
     private readonly ILogger<DefaultHub> _logger;
     private readonly IApiMapper _mapper;
 
-    public DefaultHub(UserManager<User> userManager, StimmtiDbContext context, ILogger<DefaultHub> logger, IApiMapper mapper)
+    public DefaultHub(StimmtiDbContext context, ILogger<DefaultHub> logger, IApiMapper mapper)
     {
-        _userManager = userManager;
         _context = context;
         _logger = logger;
         _mapper = mapper;
@@ -33,7 +30,7 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             .Include(x => x.Survey)
             .ThenInclude(x => x!.Owner)
             .Include(x => x.CurrentQuestion)
-            .ThenInclude(x => x.QuestionTemplate)
+            .ThenInclude(x => (x!.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions)
             .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode && x.RoomActive == true);
 
         if (session == null) return null;
@@ -170,6 +167,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         var session = await _context.Sessions
             .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
             .ThenInclude(x => x.QuestionTemplate)
+            .Include(x => x.Questions)
+            .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
             .Include(x => x.AnonymousParticipants)
             .Include(x => x.Survey)
             .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
@@ -205,6 +204,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         var session = await _context.Sessions
             .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
             .ThenInclude(x => x.QuestionTemplate)
+            .Include(x => x.Questions)
+            .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
             .Include(x => x.Survey)
             .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
         if (session == null || session.Questions.Count == 0) return false;

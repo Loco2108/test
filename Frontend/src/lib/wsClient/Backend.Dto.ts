@@ -27,8 +27,6 @@ export type AnonymousUserDto = {
 
 /** Transpiled from Backend.Dto.AnswerOptionDto */
 export type AnswerOptionDto = {
-    /** Transpiled from int */
-    orderId: number;
     /** Transpiled from string */
     description: string;
 }
@@ -89,6 +87,10 @@ export type QuestionTemplateDto = {
     questionType: QuestionTypeEnum;
     /** Transpiled from System.Collections.Generic.List<Backend.Dto.AnswerOptionDto> */
     answerOptions: AnswerOptionDto[];
+    /** Transpiled from int */
+    minValue?: number;
+    /** Transpiled from int */
+    maxValue?: number;
 }
 
 /** Transpiled from Backend.Dto.RestoreStateDto */

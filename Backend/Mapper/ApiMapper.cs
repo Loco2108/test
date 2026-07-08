@@ -21,8 +21,32 @@ public partial class ApiMapper : IApiMapper
     [MapperIgnoreTarget(nameof(AnonymousProfilePicture.AnonymousUser))]
     public partial void UpdateAnonymousProfilePicture(AnonymousProfilePictureDto source, AnonymousProfilePicture target);
 
-    [MapperIgnoreTarget(nameof(QuestionTemplateDto.AnswerOptions))]
-    public partial QuestionTemplateDto MapToQuestionTemplateDto(QuestionTemplate source);
+    public QuestionTemplateDto MapToQuestionTemplateDto(QuestionTemplate source)
+    {
+        var dto = new QuestionTemplateDto
+        {
+            Name = source.Name,
+            Description = source.Description,
+            QuestionType = source.QuestionType,
+        };
+
+        if (source is ChoiceQuestionTemplate choice)
+        {
+            dto.AnswerOptions.AddRange(
+                choice.AnswerOptions
+                    .OrderBy(x => x.OrderNumber)
+                    .Select(x => new AnswerOptionDto { Description = x.Description })
+            );
+        }
+
+        if (source is NumberScaleQuestionTemplate numberScale)
+        {
+            dto.MinValue = numberScale.MinValue;
+            dto.MaxValue = numberScale.MaxValue;
+        }
+
+        return dto;
+    }
 
     public partial List<ParticipantDto> MapToParticipantDtoList(IEnumerable<AnonymousUser> source);
 }
