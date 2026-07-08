@@ -13,6 +13,12 @@ public class StimmtiDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
     public DbSet<Survey> Surveys { get; set; }
     public DbSet<Session> Sessions { get; set; }
     public DbSet<QuestionTemplate> QuestionTemplates { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<Answer> Answers { get; set; }
+    public DbSet<AnonymousUser> AnonymousUsers { get; set; }
+    public DbSet<AnonymousProfilePicture> AnonymousProfilePictures { get; set; }
+    public DbSet<AnswerOption> AnswerOptions { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -33,10 +39,21 @@ public class StimmtiDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .WithMany(x => x.Surveys)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Survey>()
+            .HasOne(x => x.Owner)
+            .WithMany(x => x.Surveys)
+            .HasForeignKey(x => x.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Session>()
             .HasOne(x => x.Survey)
             .WithMany(x => x.Sessions)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Session>()
+            .HasOne(x => x.CurrentQuestion)
+            .WithMany()
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.Entity<QuestionTemplate>()
             .HasDiscriminator<QuestionTypeEnum>("QuestionTypeId")
@@ -48,7 +65,8 @@ public class StimmtiDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
 
         builder.Entity<QuestionTemplate>()
             .HasOne(x => x.Survey)
-            .WithMany(x => x.QuestionTemplates);
+            .WithMany(x => x.QuestionTemplates)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<ChoiceQuestionTemplate>()
             .HasMany(x => x.AnswerOptions)

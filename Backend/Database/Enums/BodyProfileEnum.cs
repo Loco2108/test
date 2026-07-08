@@ -1,5 +1,9 @@
+
+using Tapper;
+
 namespace Backend.Models.Enums;
 
+[TranspilationSource]
 public enum BodyProfileEnum
 {
     Body01 = 1,

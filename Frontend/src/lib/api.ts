@@ -52,11 +52,32 @@ export interface CreateFolderResponseDto {
   folderId: string;
 }
 
+export interface CreateSessionDto {
+  /** @maxLength 255 */
+  name: string | null;
+  description?: string | null;
+  /** @format uuid */
+  surveyId: string;
+}
+
+export interface CreateSessionResponseDto {
+  name: string | null;
+  description?: string | null;
+  roomCode: string | null;
+}
+
 export interface CreateSurveyDto {
   /** @maxLength 255 */
   title?: string | null;
   /** @maxLength 2048 */
   description?: string | null;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
+export interface CreateSurveyResponseDto {
+  /** @format uuid */
+  surveyId: string;
   /** @format uuid */
   folderId?: string | null;
 }
@@ -314,16 +335,57 @@ export class Api<
     /**
      * No description
      *
+     * @tags Session
+     * @name V1SessionCreateSessionCreate
+     * @request POST:/api/v1/Session/createSession
+     */
+    v1SessionCreateSessionCreate: (
+      data: CreateSessionDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<CreateSessionResponseDto, ProblemDetails>({
+        path: `/api/v1/Session/createSession`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Session
+     * @name V1SessionCheckSessionList
+     * @request GET:/api/v1/Session/checkSession
+     */
+    v1SessionCheckSessionList: (
+      query?: {
+        roomCode?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/Session/checkSession`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Survey
      * @name V1SurveyCreate
      * @request POST:/api/v1/Survey
      */
     v1SurveyCreate: (data: CreateSurveyDto, params: RequestParams = {}) =>
-      this.request<any, ProblemDetails>({
+      this.request<CreateSurveyResponseDto, ProblemDetails>({
         path: `/api/v1/Survey`,
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 

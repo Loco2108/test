@@ -3,7 +3,7 @@
 @plugin "daisyui";
 @plugin '@tailwindcss/typography';
 
-
+@custom-variant dark (&:where(.dark, .dark *));
 
 @plugin "daisyui/theme" {
   name: "dark";

@@ -10,6 +10,7 @@
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { Eye, Key, LoaderCircle, Pen, X } from '@lucide/svelte';
 	import axios from 'axios';
+	import * as signalR from '@microsoft/signalr';
 
 	let usernameValue = $state(authStore.user?.username);
 	let emailValue = $state(authStore.user?.email);

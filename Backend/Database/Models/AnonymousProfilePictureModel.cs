@@ -13,5 +13,6 @@ public class AnonymousProfilePicture
     public FaceProfileEnum Face { get; set; }
     public HatProfileEnum Hat { get; set; }
 
-    public required AnonymousUser AnonymousUser { get; set; }
+    public required Guid AnonymousUserId { get; set; }
+    public AnonymousUser? AnonymousUser { get; set; }
 }

@@ -7,12 +7,14 @@ public class AnswerOption
     [Key]
     public Guid Id { get; set; }
 
-    public required int OrderId { get; set; }
+    public required int OrderNumber { get; set; }
 
+    [MaxLength(2048)]
     public required string Description { get; set; }
 
-    public Guid QuestionTemplateId { get; set; }
-    public required ChoiceQuestionTemplate QuestionTemplate { get; set; }
+    public required Guid QuestionTemplateId { get; set; }
+    public ChoiceQuestionTemplate? QuestionTemplate { get; set; }
 
-    public Answer? Answer;
+    public Answer? Answer { get; set; }
+    public bool IsArchived { get; set; } = false;
 }
