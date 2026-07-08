@@ -2,15 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { scrollIntoViewOnMount } from '$lib/actions/scrollaction.js';
 	import type { GetFolderResponseDto, GetSurveyResponseDto } from '$lib/api';
-	import { apiClient } from '$lib/apiClient.js';
-	import { onMount } from 'svelte';
 	import NewSurveyDialog from '$lib/components/NewSurveyDialog.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
 	import {
 		Archive,
 		BadgePlus,
 		ChartNoAxesCombined,
-		Check,
 		ChevronRight,
 		Cog,
 		Folder,
@@ -32,36 +29,16 @@
 
 	let activeViewId = $derived(data.currentView);
 
-	let surveys = $state<GetSurveyResponseDto[]>([]);
-	let folder = $state<GetFolderResponseDto[]>([]);
+	let surveys = $derived<GetSurveyResponseDto[]>(data.surveys);
+	let folder = $derived<GetFolderResponseDto[]>(data.folder);
 	let editingItem = $state<string | null>(null);
-	let editingSurvey = $derived(surveys.find((s) => s.surveyId === editingItem) ?? null);
+	let editingSurvey = $derived(
+		surveys.find((s) => s.surveyId === editingItem) ??
+			folder.flatMap((f) => f.surveys ?? []).find((s) => s.surveyId === editingItem) ??
+			null,
+	);
 	let newSurveyDialogRef: HTMLDialogElement | undefined = $state();
 
-	onMount(async () => {
-		surveys = await getsurveys();
-		folder = await getfolders();
-	});
-
-	async function getfolders(): Promise<GetFolderResponseDto[]> {
-		try {
-			const response = await apiClient.api.v1SurveyFoldersList();
-			return response.data ?? [];
-		} catch (error) {
-			console.error('Error fetching folders:', error);
-			return [];
-		}
-	}
-
-	async function getsurveys(): Promise<GetSurveyResponseDto[]> {
-		try {
-			const response = await apiClient.api.v1SurveyList();
-			return response.data ?? [];
-		} catch (error) {
-			console.error('Error fetching surveys:', error);
-			return [];
-		}
-	}
 </script>
 
 <div class="flex w-full flex-col gap-4 md:flex-row">
@@ -93,16 +70,37 @@
 
 			{#if activeViewId === 'surveys'}
 				<ul class="menu w-full rounded-box">
+					{#each folder as f (f.folderId)}
+						<li>
+							<details>
+								<summary>
+									<Folder size={16} />
+									{f.name}
+								</summary>
+								<ul>
+									{#each f.surveys ?? [] as survey (survey.surveyId)}
+										<li>
+											<button
+												onclick={() => (editingItem = survey.surveyId)}
+												class={[editingItem === survey.surveyId && 'bg-base-300']}>
+												<Scroll size={16} />
+												{survey.title}
+												<ChevronRight size={16} />
+											</button>
+										</li>
+									{/each}
+								</ul>
+							</details>
+						</li>
+					{/each}
 					{#each surveys as survey (survey.surveyId)}
 						<li>
 							<button
 								onclick={() => (editingItem = survey.surveyId)}
 								class={[editingItem === survey.surveyId && 'bg-base-300']}>
-								<div class="flex items-center gap-2">
-									<Scroll size={16} />
-									{survey.title}
-									<ChevronRight size={16} />
-								</div>
+								<Scroll size={16} />
+								{survey.title}
+								<ChevronRight size={16} />
 							</button>
 						</li>
 					{/each}

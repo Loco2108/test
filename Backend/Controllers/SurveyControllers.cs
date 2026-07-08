@@ -11,102 +11,12 @@ public class SurveyController : ControllerBase
 {
 	private readonly StimmtiDbContext _dbContext;
 	private readonly UserManager<User> _userManager;
-	private readonly ILogger<SurveyController> _logger;
 
 	public SurveyController(StimmtiDbContext dbContext, UserManager<User> userManager, ILogger<SurveyController> logger)
 	{
 		_dbContext = dbContext;
 		_userManager = userManager;
-		_logger = logger;
 	}
-
-	[HttpGet]
-	[Authorize]
-	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-	[ProducesResponseType(typeof(IEnumerable<GetSurveyResponseDto>), StatusCodes.Status200OK)]
-	public async Task<ActionResult<IEnumerable<GetSurveyResponseDto>>> GetSurveys()
-	{
-		var user = await _userManager.GetUserAsync(User);
-		if (user == null) return Unauthorized();
-
-		var surveys = await _dbContext.Surveys
-			.AsNoTracking()
-			.Where(x => x.OwnerId == user.Id && x.FolderId == null)
-			.OrderBy(x => x.Title)
-			.Select(x => new GetSurveyResponseDto
-			{
-				SurveyId = x.Id,
-				Title = x.Title,
-				Description = x.Description,
-				FolderId = x.FolderId,
-			})
-			.ToListAsync();
-
-		return Ok(surveys);
-	}
-
-	[HttpPatch("{surveyId}")]
-	[Authorize]
-	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public async Task<IActionResult> UpdateSurvey(Guid surveyId, [FromBody] UpdateSurveyDto data)
-	{
-		var user = await _userManager.GetUserAsync(User);
-		if (user == null) return Unauthorized();
-
-		var survey = await _dbContext.Surveys.FirstOrDefaultAsync(x => x.Id == surveyId);
-		if (survey == null) return NotFound();
-
-		if (survey.OwnerId != user.Id)
-		{
-			return Forbid();
-		}
-
-		survey.Title = data.Title?.Trim() ?? survey.Title;
-		survey.Description = data.Description ?? survey.Description;
-		if (data.RemoveFromFolder.HasValue && data.RemoveFromFolder.Value) survey.FolderId = null;
-		else if (data.FolderId.HasValue && !data.RemoveFromFolder.HasValue) survey.FolderId = data.FolderId.Value;
-
-		await _dbContext.SaveChangesAsync();
-
-		return NoContent();
-	}
-
-	[HttpGet("folders")]
-	[Authorize]
-	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-	[ProducesResponseType(typeof(IEnumerable<GetFolderResponseDto>), StatusCodes.Status200OK)]
-	public async Task<ActionResult<IEnumerable<GetFolderResponseDto>>> GetFolders()
-	{
-		var user = await _userManager.GetUserAsync(User);
-		if (user == null) return Unauthorized();
-
-		var folders = await _dbContext.Folders
-			.AsNoTracking()
-			.Where(x => x.OwnerId == user.Id)
-			.OrderBy(x => x.Name)
-			.Select(x => new GetFolderResponseDto
-			{
-				FolderId = x.Id,
-				Name = x.Name,
-				Surveys = x.Surveys
-					.OrderBy(s => s.Title)
-					.Select(s => new GetSurveyResponseDto
-					{
-						SurveyId = s.Id,
-						Title = s.Title,
-						Description = s.Description,
-						FolderId = s.FolderId,
-					})
-					.ToList()
-			})
-			.ToListAsync();
-
-		return Ok(folders);
-	}
-
-
-
 
 	[HttpPost]
 	[Authorize]
@@ -157,6 +67,58 @@ public class SurveyController : ControllerBase
 		});
 	}
 
+	[HttpGet]
+	[Authorize]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+	[ProducesResponseType(typeof(IEnumerable<GetSurveyResponseDto>), StatusCodes.Status200OK)]
+	public async Task<ActionResult<IEnumerable<GetSurveyResponseDto>>> GetSurveys()
+	{
+		var user = await _userManager.GetUserAsync(User);
+		if (user == null) return Unauthorized();
+
+		var surveys = await _dbContext.Surveys
+			.AsNoTracking()
+			.Where(x => x.OwnerId == user.Id && x.FolderId == null)
+			.OrderBy(x => x.Title)
+			.Select(x => new GetSurveyResponseDto
+			{
+				SurveyId = x.Id,
+				Title = x.Title,
+				Description = x.Description,
+				FolderId = x.FolderId,
+			})
+			.ToListAsync();
+
+		return Ok(surveys);
+	}
+
+	[HttpPatch("{surveyId}")]
+	[Authorize]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	public async Task<IActionResult> UpdateSurvey(Guid surveyId, [FromBody] UpdateSurveyDto data)
+	{
+		var user = await _userManager.GetUserAsync(User);
+		if (user == null) return Unauthorized();
+
+		var survey = await _dbContext.Surveys.FirstOrDefaultAsync(x => x.Id == surveyId);
+		if (survey == null) return NotFound();
+
+		if (survey.OwnerId != user.Id) return Forbid();
+
+		if (!string.IsNullOrWhiteSpace(data.Title)) survey.Title = data.Title.Trim();
+		if (!string.IsNullOrWhiteSpace(data.Description)) survey.Description = data.Description.Trim();
+
+		if (data.RemoveFromFolder.HasValue && data.RemoveFromFolder.Value) survey.FolderId = null;
+		else if (data.FolderId.HasValue ) survey.FolderId = data.FolderId.Value;
+		else return BadRequest(new ProblemDetails { Title = "Invalid request", Detail = "You must either provide a FolderId or set RemoveFromFolder to true" });
+
+		await _dbContext.SaveChangesAsync();
+
+		return NoContent();
+	}
+
+
 	[HttpPost("folders")]
 	[Authorize]
 	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -188,7 +150,39 @@ public class SurveyController : ControllerBase
 		});
 	}
 
-	
+	[HttpGet("folders")]
+	[Authorize]
+	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+	[ProducesResponseType(typeof(IEnumerable<GetFolderResponseDto>), StatusCodes.Status200OK)]
+	public async Task<ActionResult<IEnumerable<GetFolderResponseDto>>> GetFolders()
+	{
+		var user = await _userManager.GetUserAsync(User);
+		if (user == null) return Unauthorized();
+
+		var folders = await _dbContext.Folders
+			.AsNoTracking()
+			.Where(x => x.OwnerId == user.Id)
+			.OrderBy(x => x.Name)
+			.Select(x => new GetFolderResponseDto
+			{
+				FolderId = x.Id,
+				Name = x.Name,
+				Surveys = x.Surveys
+					.OrderBy(s => s.Title)
+					.Select(s => new GetSurveyResponseDto
+					{
+						SurveyId = s.Id,
+						Title = s.Title,
+						Description = s.Description,
+						FolderId = s.FolderId,
+					})
+					.ToList()
+			})
+			.ToListAsync();
+
+		return Ok(folders);
+	}
+
 	[HttpPatch("folders/{folderId}")]
 	[Authorize]
 	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
