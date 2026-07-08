@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { scrollIntoViewOnMount } from '$lib/actions/scrollaction.js';
+	import type { GetFolderResponseDto, GetSurveyResponseDto } from '$lib/api';
+	import { apiClient } from '$lib/apiClient.js';
+	import { onMount } from 'svelte';
 	import NewSurveyDialog from '$lib/components/NewSurveyDialog.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
 	import {
@@ -21,57 +24,44 @@
 	let { data } = $props();
 
 	let menuTabs = [
-		{ label: 'Surveys', icon: Form },
+		{ label: 'surveys', icon: Form },
 		{ label: 'Sessions', icon: ChartNoAxesCombined },
 		{ label: 'Templates', icon: Plus },
 		{ label: 'Archive', icon: Archive },
 	];
 
-	type Survey = { type: 'survey'; title: string };
-	let mockSurveys: (
-		| Survey
-		| {
-				type: 'folder';
-				title: string;
-				color:
-					| 'warning'
-					| 'error'
-					| 'success'
-					| 'primary'
-					| 'secondary'
-					| 'info'
-					| 'accent';
-				surveys: Survey[];
-		  }
-	)[] = [
-		{
-			type: 'folder',
-			title: 'Seminars',
-			color: 'error',
-			surveys: [
-				{ type: 'survey', title: 'NodeJS Seminar Feedback' },
-				{ type: 'survey', title: 'C# & ASP.NET Architecture' },
-			],
-		},
-		{
-			type: 'folder',
-			title: 'Planning',
-			color: 'warning',
-			surveys: [
-				{ type: 'survey', title: 'Milestone 1 (M1) Check-in' },
-				{ type: 'survey', title: 'MySQL Performance Tuning' },
-				{ type: 'survey', title: 'Mentimeter Alternatives' },
-				{ type: 'survey', title: 'Sprint Retrospective' },
-			],
-		},
-		{ type: 'survey', title: 'Docker Deployment Quiz' },
-		{ type: 'survey', title: 'Svelte 5 vs. React' },
-	];
-
 	let activeViewId = $derived(data.currentView);
 
+	let surveys = $state<GetSurveyResponseDto[]>([]);
+	let folder = $state<GetFolderResponseDto[]>([]);
 	let editingItem = $state<string | null>(null);
+	let editingSurvey = $derived(surveys.find((s) => s.surveyId === editingItem) ?? null);
 	let newSurveyDialogRef: HTMLDialogElement | undefined = $state();
+
+	onMount(async () => {
+		surveys = await getsurveys();
+		folder = await getfolders();
+	});
+
+	async function getfolders(): Promise<GetFolderResponseDto[]> {
+		try {
+			const response = await apiClient.api.v1SurveyFoldersList();
+			return response.data ?? [];
+		} catch (error) {
+			console.error('Error fetching folders:', error);
+			return [];
+		}
+	}
+
+	async function getsurveys(): Promise<GetSurveyResponseDto[]> {
+		try {
+			const response = await apiClient.api.v1SurveyList();
+			return response.data ?? [];
+		} catch (error) {
+			console.error('Error fetching surveys:', error);
+			return [];
+		}
+	}
 </script>
 
 <div class="flex w-full flex-col gap-4 md:flex-row">
@@ -103,56 +93,18 @@
 
 			{#if activeViewId === 'surveys'}
 				<ul class="menu w-full rounded-box">
-					{#each mockSurveys as item}
-						{#if item.type === 'folder'}
-							<li>
-								<details>
-									<summary
-										class={[
-											item.color === 'primary' && 'text-primary',
-											item.color === 'secondary' && 'text-secondary',
-											item.color === 'accent' && 'text-accent',
-											item.color === 'info' && 'text-info',
-											item.color === 'success' && 'text-success',
-											item.color === 'warning' && 'text-warning',
-											item.color === 'error' && 'text-error',
-										]}>
-										<Folder size={16} />
-										{item.title}
-									</summary>
-									<ul>
-										{#each item.surveys as survey}
-											<li>
-												<button
-													onclick={() => (editingItem = survey.title)}
-													class={[
-														editingItem === survey.title &&
-															'bg-base-300',
-													]}>
-													<div class="flex items-center gap-2">
-														<Scroll size={16} />
-														{survey.title}
-														<ChevronRight size={16} />
-													</div>
-												</button>
-											</li>
-										{/each}
-									</ul>
-								</details>
-							</li>
-						{:else if item.type === 'survey'}
-							<li>
-								<button
-									onclick={() => (editingItem = item.title)}
-									class={[editingItem === item.title && 'bg-base-300']}>
-									<div class="flex items-center gap-2">
-										<Scroll size={16} />
-										{item.title}
-										<ChevronRight size={16} />
-									</div>
-								</button>
-							</li>
-						{/if}
+					{#each surveys as survey (survey.surveyId)}
+						<li>
+							<button
+								onclick={() => (editingItem = survey.surveyId)}
+								class={[editingItem === survey.surveyId && 'bg-base-300']}>
+								<div class="flex items-center gap-2">
+									<Scroll size={16} />
+									{survey.title}
+									<ChevronRight size={16} />
+								</div>
+							</button>
+						</li>
 					{/each}
 				</ul>
 
@@ -169,15 +121,15 @@
 		</div>
 	</div>
 
-	{#if editingItem}
+	{#if editingSurvey}
 		<div
 			class="card h-fit flex-3 bg-base-100 shadow-sm card-md"
-			use:scrollIntoViewOnMount={editingItem}>
+			use:scrollIntoViewOnMount={editingSurvey.surveyId}>
 			<div class="card-body">
 				<div class="flex justify-between">
 					<h2 class="card-title justify-between">
 						<Scroll />
-						{editingItem}
+						{editingSurvey.title}
 					</h2>
 					<button
 						class="btn btn-ghost btn-sm btn-neutral"
@@ -208,7 +160,7 @@
 				<div class="card-actions flex-col">
 					<button
 						class="btn btn-block btn-outline btn-sm btn-secondary"
-						onclick={() => goto(`/app/surveys/${crypto.randomUUID()}`)}
+						onclick={() => goto(`/app/surveys/${editingSurvey!.surveyId}`)}
 						><Cog size={20} /> Full Settings</button>
 					<button class="btn btn-block btn-primary"><Play /> Start Session </button>
 				</div>

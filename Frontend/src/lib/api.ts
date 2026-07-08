@@ -61,6 +61,22 @@ export interface CreateSurveyDto {
   folderId?: string | null;
 }
 
+export interface GetFolderResponseDto {
+  /** @format uuid */
+  folderId: string;
+  name: string | null;
+  surveys: GetSurveyResponseDto[] | null;
+}
+
+export interface GetSurveyResponseDto {
+  /** @format uuid */
+  surveyId: string;
+  title: string | null;
+  description?: string | null;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
 export interface IdentityError {
   code?: string | null;
   description?: string | null;
@@ -74,6 +90,21 @@ export interface ProblemDetails {
   detail?: string | null;
   instance?: string | null;
   [key: string]: any;
+}
+
+export interface UpdateFolderDto {
+  /** @maxLength 255 */
+  name?: string | null;
+}
+
+export interface UpdateSurveyDto {
+  /** @maxLength 255 */
+  title: string | null;
+  /** @maxLength 2048 */
+  description: string | null;
+  /** @format uuid */
+  folderId?: string | null;
+  removeFromFolder?: boolean | null;
 }
 
 export interface UserAuthDto {
@@ -315,6 +346,21 @@ export class Api<
      * No description
      *
      * @tags Survey
+     * @name V1SurveyList
+     * @request GET:/api/v1/Survey
+     */
+    v1SurveyList: (params: RequestParams = {}) =>
+      this.request<GetSurveyResponseDto[], ProblemDetails>({
+        path: `/api/v1/Survey`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
      * @name V1SurveyCreate
      * @request POST:/api/v1/Survey
      */
@@ -324,6 +370,41 @@ export class Api<
         method: "POST",
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyPartialUpdate
+     * @request PATCH:/api/v1/Survey/{surveyId}
+     */
+    v1SurveyPartialUpdate: (
+      surveyId: string,
+      data: UpdateSurveyDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/v1/Survey/${surveyId}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyFoldersList
+     * @request GET:/api/v1/Survey/folders
+     */
+    v1SurveyFoldersList: (params: RequestParams = {}) =>
+      this.request<GetFolderResponseDto[], ProblemDetails>({
+        path: `/api/v1/Survey/folders`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
 
@@ -344,6 +425,26 @@ export class Api<
         body: data,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyFoldersPartialUpdate
+     * @request PATCH:/api/v1/Survey/folders/{folderId}
+     */
+    v1SurveyFoldersPartialUpdate: (
+      folderId: string,
+      data: UpdateFolderDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<any, ProblemDetails>({
+        path: `/api/v1/Survey/folders/${folderId}`,
+        method: "PATCH",
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 
