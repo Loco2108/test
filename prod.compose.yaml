@@ -58,8 +58,7 @@ services:
 
   # ASP.NET Backend
   backend:
-    build:
-      context: ./Backend
+    image: ghcr.io/moldybot9411/stimmti-backend:latest
     restart: unless-stopped
     container_name: stimmti_backend
     environment:
@@ -80,8 +79,7 @@ services:
 
   # Svelte Frontend
   frontend:
-    build:
-      context: ./Frontend
+    image: ghcr.io/moldybot9411/stimmti-frontend:latest
     restart: unless-stopped
     container_name: stimmti_frontend
     environment:
