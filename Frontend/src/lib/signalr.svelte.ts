@@ -5,8 +5,10 @@ import type {
 } from './wsClient/TypedSignalR.Client/Backend.Hubs.Interfaces';
 import type {
 	AnonymousProfilePictureDto,
+	AnswerOptionDto,
 	JoinSessionDto,
 	RestoreStateDto,
+	SubmitAnswerDto,
 } from './wsClient/Backend.Dto';
 import { getHubProxyFactory, getReceiverRegister } from './wsClient/TypedSignalR.Client';
 import { goto } from '$app/navigation';
@@ -24,6 +26,7 @@ export class SessionConnection {
 
 	connected = $state(false);
 	state = $state<RestoreStateDto | null>(null);
+	cumulativeAnswers: SubmitAnswerDto[] = [];
 
 	constructor() {
 		this.connection = new signalR.HubConnectionBuilder()
@@ -57,6 +60,7 @@ export class SessionConnection {
 			questionChanged: async (data) => {
 				if (!this.state) return;
 				this.state.currentQuestion = data;
+				this.cumulativeAnswers = [];
 			},
 			sessionClosed: async () => {
 				if (this.state?.role === ParticipantRole.Participant) {
@@ -65,6 +69,10 @@ export class SessionConnection {
 				}
 
 				goto(`/app/sessions/${this.state?.sessionId}`);
+			},
+			answerSubmitted: async (data) => {
+				this.cumulativeAnswers.push(data);
+				console.log(data);
 			},
 		};
 
@@ -149,6 +157,18 @@ export class SessionConnection {
 		if (!this.currentRoomCode || !this.connected) return false;
 
 		let res = await this.sessionHub.closeSession(this.currentRoomCode);
+
+		return res;
+	}
+
+	async submitAnswer() {
+		if (!this.currentRoomCode || !this.connected || !this.state?.userInformation) return false;
+
+		let res = await this.sessionHub.submitAnswer({
+			anonymousUserId: this.state?.userInformation?.id,
+			roomCode: this.currentRoomCode,
+			answerOptions: [],
+		});
 
 		return res;
 	}

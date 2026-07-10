@@ -25,6 +25,7 @@ public partial class ApiMapper : IApiMapper
     {
         var dto = new QuestionTemplateDto
         {
+            Id = source.Id,
             Name = source.Name,
             Description = source.Description,
             QuestionType = source.QuestionType,
@@ -35,7 +36,7 @@ public partial class ApiMapper : IApiMapper
             dto.AnswerOptions.AddRange(
                 choice.AnswerOptions
                     .OrderBy(x => x.OrderNumber)
-                    .Select(x => new AnswerOptionDto { Description = x.Description })
+                    .Select(x => new AnswerOptionDto { Id = x.Id, Description = x.Description })
             );
         }
 

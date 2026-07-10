@@ -27,6 +27,8 @@ export type AnonymousUserDto = {
 
 /** Transpiled from Backend.Dto.AnswerOptionDto */
 export type AnswerOptionDto = {
+    /** Transpiled from System.Guid */
+    id: string;
     /** Transpiled from string */
     description: string;
 }
@@ -79,6 +81,8 @@ export type PresenterDto = {
 
 /** Transpiled from Backend.Dto.QuestionTemplateDto */
 export type QuestionTemplateDto = {
+    /** Transpiled from System.Guid */
+    id: string;
     /** Transpiled from string */
     name: string;
     /** Transpiled from string? */
@@ -113,5 +117,19 @@ export type RestoreStateDto = {
     participants: ParticipantDto[];
     /** Transpiled from Backend.Dto.QuestionTemplateDto? */
     currentQuestion?: QuestionTemplateDto;
+}
+
+/** Transpiled from Backend.Dto.SubmitAnswerDto */
+export type SubmitAnswerDto = {
+    /** Transpiled from System.Guid */
+    anonymousUserId: string;
+    /** Transpiled from string */
+    roomCode: string;
+    /** Transpiled from System.Collections.Generic.List<Backend.Dto.AnswerOptionDto> */
+    answerOptions: AnswerOptionDto[];
+    /** Transpiled from string? */
+    text?: string;
+    /** Transpiled from int */
+    value?: number;
 }
 

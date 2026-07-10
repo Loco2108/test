@@ -26,11 +26,11 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
     {
         var session = await _context.Sessions
             .Include(x => x.AnonymousParticipants)
-            .ThenInclude(x => x.ProfilePicture)
+                .ThenInclude(x => x.ProfilePicture)
             .Include(x => x.Survey)
-            .ThenInclude(x => x!.Owner)
+                .ThenInclude(x => x!.Owner)
             .Include(x => x.CurrentQuestion)
-            .ThenInclude(x => (x!.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions)
+                .ThenInclude(x => (x!.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions)
             .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode && x.RoomActive == true);
 
         if (session == null) return null;
@@ -165,12 +165,12 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
     public async Task<bool> StartSession(string roomCode)
     {
         var session = await _context.Sessions
-            .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
-            .ThenInclude(x => x.QuestionTemplate)
-            .Include(x => x.Questions)
-            .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
             .Include(x => x.AnonymousParticipants)
             .Include(x => x.Survey)
+            .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
+                .ThenInclude(x => x.QuestionTemplate)
+            .Include(x => x.Questions)
+                .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
             .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
         if (session == null) return false;
 
@@ -203,9 +203,9 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
     {
         var session = await _context.Sessions
             .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
-            .ThenInclude(x => x.QuestionTemplate)
+                .ThenInclude(x => x.QuestionTemplate)
             .Include(x => x.Questions)
-            .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
+                .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
             .Include(x => x.Survey)
             .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
         if (session == null || session.Questions.Count == 0) return false;
@@ -260,6 +260,28 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         await _context.SaveChangesAsync();
 
         await Clients.Group(roomCode).SessionClosed();
+
+        return true;
+    }
+
+    public async Task<bool> SubmitAnswer(SubmitAnswerDto data)
+    {
+        var session = await _context.Sessions
+            .Include(x => x.Survey)
+            .Include(x => x.CurrentQuestion)
+                .ThenInclude(x => (x!.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions)
+            .Include(x => x.CurrentQuestion)
+                .ThenInclude(x => x.QuestionTemplate)
+            .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode && x.RoomActive == true);
+        if (session == null) return false;
+        if (session.CurrentQuestion == null || session.CurrentQuestion.QuestionTemplate == null) return false;
+
+        var participant = await _context.AnonymousUsers
+            .Include(x => x.Answers)
+            .FirstOrDefaultAsync(x => x.Id == data.AnonymousUserId && x.SessionId == session.Id);
+        if (participant == null) return false;
+
+
 
         return true;
     }

@@ -4,7 +4,7 @@
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
 import type { ISessionHub, ISessionHubClient } from './Backend.Hubs.Interfaces';
-import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, SubmitAnswerDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto } from '../Backend.Dto';
 import type { SessionState } from '../Backend.Models.Enums';
 
 
@@ -104,6 +104,10 @@ class ISessionHub_HubProxy implements ISessionHub {
     public readonly closeSession = async (roomCode: string): Promise<boolean> => {
         return await this.connection.invoke("CloseSession", roomCode);
     }
+
+    public readonly submitAnswer = async (data: SubmitAnswerDto): Promise<boolean> => {
+        return await this.connection.invoke("SubmitAnswer", data);
+    }
 }
 
 
@@ -122,12 +126,14 @@ class ISessionHubClient_Binder implements ReceiverRegister<ISessionHubClient> {
         const __participantUpdated = (...args: [ParticipantUpdateResponseDto]) => receiver.participantUpdated(...args);
         const __sessionStateChanged = (...args: [SessionState]) => receiver.sessionStateChanged(...args);
         const __questionChanged = (...args: [QuestionTemplateDto]) => receiver.questionChanged(...args);
+        const __answerSubmitted = (...args: [SubmitAnswerDto]) => receiver.answerSubmitted(...args);
         const __sessionClosed = () => receiver.sessionClosed();
 
         connection.on("ParticipantJoined", __participantJoined);
         connection.on("ParticipantUpdated", __participantUpdated);
         connection.on("SessionStateChanged", __sessionStateChanged);
         connection.on("QuestionChanged", __questionChanged);
+        connection.on("AnswerSubmitted", __answerSubmitted);
         connection.on("SessionClosed", __sessionClosed);
 
         const methodList: ReceiverMethod[] = [
@@ -135,6 +141,7 @@ class ISessionHubClient_Binder implements ReceiverRegister<ISessionHubClient> {
             { methodName: "ParticipantUpdated", method: __participantUpdated },
             { methodName: "SessionStateChanged", method: __sessionStateChanged },
             { methodName: "QuestionChanged", method: __questionChanged },
+            { methodName: "AnswerSubmitted", method: __answerSubmitted },
             { methodName: "SessionClosed", method: __sessionClosed }
         ]
 
