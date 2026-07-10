@@ -46,6 +46,11 @@ public partial class ApiMapper : IApiMapper
             dto.MaxValue = numberScale.MaxValue;
         }
 
+        if (source is WordCloudQuestionTemplate wordCloud)
+        {
+            dto.WordCloudMaxWords = wordCloud.MaxWords;
+        }
+
         return dto;
     }
 

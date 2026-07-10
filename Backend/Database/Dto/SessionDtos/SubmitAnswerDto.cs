@@ -10,4 +10,5 @@ public class SubmitAnswerDto
     public List<AnswerOptionDto> AnswerOptions { get; set; } = new List<AnswerOptionDto>();
     public string? Text { get; set; }
     public int? Value { get; set; }
+    public List<string> WordCloudAnswers { get; set; } = new List<string>();
 }

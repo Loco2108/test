@@ -4,7 +4,7 @@
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
 import type { ISessionHub, ISessionHubClient } from './Backend.Hubs.Interfaces';
-import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, SubmitAnswerDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, SubmitAnswerDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto, AnswerDisplayDto } from '../Backend.Dto';
 import type { SessionState } from '../Backend.Models.Enums';
 
 
@@ -126,7 +126,7 @@ class ISessionHubClient_Binder implements ReceiverRegister<ISessionHubClient> {
         const __participantUpdated = (...args: [ParticipantUpdateResponseDto]) => receiver.participantUpdated(...args);
         const __sessionStateChanged = (...args: [SessionState]) => receiver.sessionStateChanged(...args);
         const __questionChanged = (...args: [QuestionTemplateDto]) => receiver.questionChanged(...args);
-        const __answerSubmitted = (...args: [SubmitAnswerDto]) => receiver.answerSubmitted(...args);
+        const __answerSubmitted = (...args: [AnswerDisplayDto]) => receiver.answerSubmitted(...args);
         const __sessionClosed = () => receiver.sessionClosed();
 
         connection.on("ParticipantJoined", __participantJoined);

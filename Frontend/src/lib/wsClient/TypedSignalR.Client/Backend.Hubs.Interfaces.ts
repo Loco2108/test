@@ -3,7 +3,7 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
-import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, SubmitAnswerDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto } from '../Backend.Dto';
+import type { JoinSessionDto, RestoreStateDto, ParticipantUpdateDto, SubmitAnswerDto, ParticipantDto, ParticipantUpdateResponseDto, QuestionTemplateDto, AnswerDisplayDto } from '../Backend.Dto';
 import type { SessionState } from '../Backend.Models.Enums';
 
 export type ISessionHub = {
@@ -66,10 +66,10 @@ export type ISessionHubClient = {
     */
     questionChanged(data: QuestionTemplateDto): Promise<void>;
     /**
-    * @param data Transpiled from Backend.Dto.SubmitAnswerDto
+    * @param data Transpiled from Backend.Dto.AnswerDisplayDto
     * @returns Transpiled from System.Threading.Tasks.Task
     */
-    answerSubmitted(data: SubmitAnswerDto): Promise<void>;
+    answerSubmitted(data: AnswerDisplayDto): Promise<void>;
     /**
     * @returns Transpiled from System.Threading.Tasks.Task
     */

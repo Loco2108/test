@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Backend.Dto;
 using Backend.Hubs.Interfaces;
 using Backend.Mapper;
@@ -31,6 +32,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
                 .ThenInclude(x => x!.Owner)
             .Include(x => x.CurrentQuestion)
                 .ThenInclude(x => (x!.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions)
+            .Include(x => x.CurrentQuestion)
+                .ThenInclude(x => x.Answers)
             .FirstOrDefaultAsync(x => x.RoomCode == data.RoomCode && x.RoomActive == true);
 
         if (session == null) return null;
@@ -108,7 +111,8 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             Participants = _mapper.MapToParticipantDtoList(session.AnonymousParticipants),
             CurrentQuestion = session.CurrentQuestion?.QuestionTemplate != null
                 ? _mapper.MapToQuestionTemplateDto(session.CurrentQuestion.QuestionTemplate)
-                : null
+                : null,
+            AnsweredThisRound = participant.AnsweredThisRound
         };
     }
 
@@ -202,11 +206,12 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
     public async Task<bool> NextQuestion(string roomCode)
     {
         var session = await _context.Sessions
+            .Include(x => x.Survey)
+            .Include(x => x.AnonymousParticipants)
             .Include(x => x.Questions.OrderBy(y => y.QuestionTemplate!.OrderNumber))
                 .ThenInclude(x => x.QuestionTemplate)
             .Include(x => x.Questions)
                 .ThenInclude(x => (x.QuestionTemplate as ChoiceQuestionTemplate)!.AnswerOptions.OrderBy(y => y.OrderNumber))
-            .Include(x => x.Survey)
             .FirstOrDefaultAsync(x => x.RoomCode == roomCode && x.RoomActive == true);
         if (session == null || session.Questions.Count == 0) return false;
 
@@ -233,10 +238,16 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
         await Clients.Group(roomCode).SessionStateChanged(SessionState.Loading);
 
         var nextQuestion = session.Questions[currentIndex + 1];
-        await Clients.Group(roomCode).QuestionChanged(_mapper.MapToQuestionTemplateDto(nextQuestion.QuestionTemplate!));
+
+        foreach (var participant in session.AnonymousParticipants)
+        {
+            participant.AnsweredThisRound = false;
+        }
 
         session.CurrentQuestionId = nextQuestion.Id;
         await _context.SaveChangesAsync();
+
+        await Clients.Group(roomCode).QuestionChanged(_mapper.MapToQuestionTemplateDto(nextQuestion.QuestionTemplate!));
 
         await Task.Delay(1000);
 
@@ -280,8 +291,167 @@ public class DefaultHub : Hub<ISessionHubClient>, ISessionHub
             .Include(x => x.Answers)
             .FirstOrDefaultAsync(x => x.Id == data.AnonymousUserId && x.SessionId == session.Id);
         if (participant == null) return false;
+        if (participant.AnsweredThisRound) return false;
 
+        var template = session.CurrentQuestion.QuestionTemplate;
+        var questionId = session.CurrentQuestion.Id;
+        var userId = participant.Id;
 
+        switch (template.QuestionType)
+        {
+            case QuestionTypeEnum.SingleChoice:
+                var singleChoiceDto = data.AnswerOptions.FirstOrDefault();
+                if (singleChoiceDto == null) return false;
+
+                var singleChoiceTemplate = (ChoiceQuestionTemplate)template;
+                if (!singleChoiceTemplate.AnswerOptions.Any(x => x.Id == singleChoiceDto.Id)) return false;
+
+                _context.Add(new SingleChoiceAnswer
+                {
+                    AnonymousUserId = userId,
+                    QuestionId = questionId,
+                    AnswerOptionId = singleChoiceDto.Id
+                });
+                break;
+
+            case QuestionTypeEnum.MultipleChoice:
+                if (!data.AnswerOptions.Any()) return false;
+
+                var multiChoiceTemplate = (ChoiceQuestionTemplate)template;
+                var validOptionIds = multiChoiceTemplate.AnswerOptions.Select(x => x.Id).ToList();
+
+                foreach (var opt in data.AnswerOptions)
+                {
+                    if (!validOptionIds.Contains(opt.Id)) return false;
+
+                    _context.Add(new MultipleChoiceAnswer
+                    {
+                        AnonymousUserId = userId,
+                        QuestionId = questionId,
+                        AnswerOptionId = opt.Id
+                    });
+                }
+
+                break;
+            case QuestionTypeEnum.FreeText:
+                if (string.IsNullOrWhiteSpace(data.Text)) return false;
+                if (data.Text.Length > 256) return false;
+
+                _context.Add(new FreeTextAnswer
+                {
+                    AnonymousUserId = userId,
+                    QuestionId = questionId,
+                    Text = data.Text.Trim()
+                });
+
+                break;
+            case QuestionTypeEnum.WordCloud:
+                if (data.WordCloudAnswers == null || data.WordCloudAnswers.Count == 0) return false;
+
+                var wordCloudTemplate = (WordCloudQuestionTemplate)template;
+                if (data.WordCloudAnswers.Count > wordCloudTemplate.MaxWords) return false;
+
+                if (data.WordCloudAnswers.Any(x => string.IsNullOrWhiteSpace(x) || x.Split(" ").Length > 1 || x.Length > 64)) return false;
+
+                foreach (var answer in data.WordCloudAnswers)
+                {
+                    _context.Add(new WordCloudAnswer
+                    {
+                        AnonymousUserId = userId,
+                        QuestionId = questionId,
+                        Text = answer.Trim()
+                    });
+                }
+
+                break;
+            case QuestionTypeEnum.NumberScale:
+                if (!data.Value.HasValue) return false;
+
+                var numberTemplate = (NumberScaleQuestionTemplate)template;
+                if (data.Value.Value < numberTemplate.MinValue || data.Value.Value > numberTemplate.MaxValue) return false;
+
+                _context.Add(new NumberScaleAnswer
+                {
+                    AnonymousUserId = userId,
+                    QuestionId = questionId,
+                    Value = data.Value.Value
+                });
+
+                break;
+
+            default:
+                return false;
+        }
+
+        participant.AnsweredThisRound = true;
+        await _context.SaveChangesAsync();
+
+        var displayDto = new AnswerDisplayDto();
+
+        // 3. Je nach Fragetyp die Daten direkt in der Datenbank gruppieren (sehr performant)
+        switch (template.QuestionType)
+        {
+            case QuestionTypeEnum.SingleChoice:
+            case QuestionTypeEnum.MultipleChoice:
+                displayDto.ChoiceResults = await _context.Set<ChoiceAnswer>()
+                    .Include(a => a.AnswerOption)
+                    .Where(a => a.QuestionId == questionId)
+                    .GroupBy(a => a.AnswerOptionId)
+                    .Select(g => new ChoiceResultDto
+                    {
+                        AnswerOption = new AnswerOptionDto
+                        {
+                            Id = g.Key,
+                            Description = g.First().AnswerOption!.Description
+                        },
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+                break;
+
+            case QuestionTypeEnum.WordCloud:
+                displayDto.WordCloudResults = await _context.Set<WordCloudAnswer>()
+                    .Where(a => a.QuestionId == questionId)
+                    .GroupBy(a => a.Text.ToLower())
+                    .Select(g => new WordCloudResultDto
+                    {
+                        Text = g.First().Text,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+                break;
+            case QuestionTypeEnum.FreeText:
+                displayDto.FreeTextResults = await _context.Set<FreeTextAnswer>()
+                    .Where(a => a.QuestionId == questionId)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .Select(g => new FreeTextResultDto
+                    {
+                        Id = g.Id,
+                        Text = g.Text,
+                    })
+                    .ToListAsync();
+                break;
+
+            case QuestionTypeEnum.NumberScale:
+                displayDto.NumberResults = await _context.Set<NumberScaleAnswer>()
+                    .Where(a => a.QuestionId == questionId)
+                    .GroupBy(a => a.Value)
+                    .Select(g => new NumberResultDto
+                    {
+                        Value = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+                break;
+        }
+
+        displayDto.TotalParticipantsAnswered = await _context.Set<Answer>()
+            .Where(a => a.QuestionId == questionId)
+            .Select(a => a.AnonymousUserId)
+            .Distinct()
+            .CountAsync();
+
+        await Clients.User(session.Survey!.OwnerId.ToString()).AnswerSubmitted(displayDto);
 
         return true;
     }

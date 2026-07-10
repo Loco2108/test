@@ -5,10 +5,10 @@ import type {
 } from './wsClient/TypedSignalR.Client/Backend.Hubs.Interfaces';
 import type {
 	AnonymousProfilePictureDto,
+	AnswerDisplayDto,
 	AnswerOptionDto,
 	JoinSessionDto,
 	RestoreStateDto,
-	SubmitAnswerDto,
 } from './wsClient/Backend.Dto';
 import { getHubProxyFactory, getReceiverRegister } from './wsClient/TypedSignalR.Client';
 import { goto } from '$app/navigation';
@@ -26,7 +26,7 @@ export class SessionConnection {
 
 	connected = $state(false);
 	state = $state<RestoreStateDto | null>(null);
-	cumulativeAnswers: SubmitAnswerDto[] = [];
+	participantAnswers: AnswerDisplayDto | undefined = $state();
 
 	constructor() {
 		this.connection = new signalR.HubConnectionBuilder()
@@ -60,7 +60,8 @@ export class SessionConnection {
 			questionChanged: async (data) => {
 				if (!this.state) return;
 				this.state.currentQuestion = data;
-				this.cumulativeAnswers = [];
+				this.state.answeredThisRound = false;
+				this.participantAnswers = undefined;
 			},
 			sessionClosed: async () => {
 				if (this.state?.role === ParticipantRole.Participant) {
@@ -71,8 +72,7 @@ export class SessionConnection {
 				goto(`/app/sessions/${this.state?.sessionId}`);
 			},
 			answerSubmitted: async (data) => {
-				this.cumulativeAnswers.push(data);
-				console.log(data);
+				this.participantAnswers = data;
 			},
 		};
 
@@ -161,14 +161,24 @@ export class SessionConnection {
 		return res;
 	}
 
-	async submitAnswer() {
+	async submitAnswer(
+		answerOptions?: AnswerOptionDto[],
+		wordCloudTexts?: string[],
+		text?: string,
+		value?: number
+	) {
 		if (!this.currentRoomCode || !this.connected || !this.state?.userInformation) return false;
 
 		let res = await this.sessionHub.submitAnswer({
-			anonymousUserId: this.state?.userInformation?.id,
+			anonymousUserId: this.state.userInformation.id,
 			roomCode: this.currentRoomCode,
-			answerOptions: [],
+			answerOptions: answerOptions ?? [],
+			text,
+			value,
+			wordCloudAnswers: wordCloudTexts ?? [],
 		});
+
+		if (res) this.state.answeredThisRound = true;
 
 		return res;
 	}

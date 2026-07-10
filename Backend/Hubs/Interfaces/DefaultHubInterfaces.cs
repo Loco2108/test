@@ -23,6 +23,6 @@ public interface ISessionHubClient
     Task ParticipantUpdated(ParticipantUpdateResponseDto data);
     Task SessionStateChanged(SessionState newState);
     Task QuestionChanged(QuestionTemplateDto data);
-    Task AnswerSubmitted(SubmitAnswerDto data);
+    Task AnswerSubmitted(AnswerDisplayDto data);
     Task SessionClosed();
 }

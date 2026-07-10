@@ -13,4 +13,5 @@ public class QuestionTemplateDto
     public List<AnswerOptionDto> AnswerOptions { get; } = new List<AnswerOptionDto>();
     public int? MinValue { get; set; }
     public int? MaxValue { get; set; }
+    public int? WordCloudMaxWords { get; set; }
 }
