@@ -3,6 +3,10 @@
         reverse_proxy backend:8080
     }
 
+    handle /uploads/* {
+        reverse_proxy backend:8080
+    }
+
     handle {
         reverse_proxy frontend:3000
     }
@@ -14,5 +18,4 @@ db.{$DOMAIN} {
     }
 
     reverse_proxy phpmyadmin:80
-}
 }
