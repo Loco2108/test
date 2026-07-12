@@ -3,6 +3,7 @@ using Backend.Filters;
 using Backend.Hubs;
 using Backend.Mapper;
 using Backend.Models;
+using Backend.Services;
 using Backend.StaticHelpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +58,10 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 })
 .AddEntityFrameworkStores<StimmtiDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddTransient<IAnswerService, AnswerService>();
+builder.Services.AddTransient<IParticipantService, ParticipantService>();
+builder.Services.AddTransient<ISessionService, SessionService>();
 
 var app = builder.Build();
 
