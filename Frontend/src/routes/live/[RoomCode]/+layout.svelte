@@ -155,6 +155,7 @@
 			scaleMinValue={hub.state?.currentQuestion?.minValue}
 			scaleMaxValue={hub.state?.currentQuestion?.maxValue}
 			finishedAnsering={hub.state?.answeredThisRound}
+			participantCount={hub.state?.participants.length}
 			numWordCloudInputs={hub.state?.currentQuestion?.wordCloudMaxWords}
 			answers={hub.participantAnswers}
 			onNextQuestion={nextQuestion}

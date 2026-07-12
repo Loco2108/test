@@ -4,19 +4,33 @@
 	import { slide } from 'svelte/transition';
 	import type { Option } from './MultipleChoice.svelte';
 	import WordCloud from './WordCloud.svelte';
+	import NumberScale from './NumberScale.svelte';
+	import NumberScaleVisualizer from './NumberScaleVisualizer.svelte';
 
 	type Props = {
 		answers?: AnswerDisplayDto;
 		questionType?: QuestionTypeEnum;
+		participantCount?: number;
 		choiceOptions?: Option[];
+		scaleMinValue?: number;
+		scaleMaxValue?: number;
 	};
 
-	let { answers, questionType, choiceOptions = [] }: Props = $props();
+	let {
+		answers,
+		questionType,
+		participantCount,
+		choiceOptions = [],
+		scaleMinValue,
+		scaleMaxValue,
+	}: Props = $props();
 </script>
 
-<div class="mb-16 text-2xl font-bold">
+<div class="mb-16 self-start text-2xl font-bold opacity-50">
 	Participants answered:
 	<div class="ml-1 badge badge-outline badge-lg">{answers?.totalParticipantsAnswered ?? 0}</div>
+	/
+	<div class="ml-1 badge badge-outline badge-lg">{participantCount ?? 0}</div>
 </div>
 
 {#if questionType === QuestionTypeEnum.SingleChoice || questionType === QuestionTypeEnum.MultipleChoice}
@@ -66,4 +80,6 @@
 			</div>
 		{/each}
 	</div>
+{:else if questionType === QuestionTypeEnum.NumberScale}
+	<NumberScaleVisualizer {answers} {scaleMinValue} {scaleMaxValue} />
 {/if}

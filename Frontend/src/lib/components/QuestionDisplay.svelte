@@ -17,6 +17,7 @@
 		scaleMinValue?: number;
 		scaleMaxValue?: number;
 		finishedAnsering?: boolean;
+		participantCount?: number;
 
 		answers?: AnswerDisplayDto;
 
@@ -39,6 +40,7 @@
 		scaleMinValue,
 		scaleMaxValue,
 		finishedAnsering,
+		participantCount,
 		answers,
 		onNextQuestion,
 		onSubmitAnswer,
@@ -83,7 +85,7 @@
 	</p>
 {/if}
 
-<div class="divider mb-16"></div>
+<div class="divider"></div>
 
 {#if role === ParticipantRole.Participant}
 	{#if finishedAnsering}
@@ -128,7 +130,13 @@
 {/if}
 
 {#if role === ParticipantRole.Presenter}
-	<AnswerVisualizer {answers} {questionType} {choiceOptions} />
+	<AnswerVisualizer
+		{answers}
+		{questionType}
+		{choiceOptions}
+		{scaleMinValue}
+		{scaleMaxValue}
+		{participantCount} />
 
 	<button
 		class="btn fixed right-4 bottom-4 btn-primary btn-xl"
