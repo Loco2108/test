@@ -1,14 +1,19 @@
 <script lang="ts">
-	import type { AnswerDisplayDto, NumberResultDto } from '$lib/wsClient/Backend.Dto';
+	import type {
+		AnswerDisplayDto as WsAnswerDisplayDto,
+		NumberResultDto,
+	} from '$lib/wsClient/Backend.Dto';
+	import type { AnswerDisplayDto as APIAnswerDisplayDto } from '$lib/api';
 	import * as d3 from 'd3';
 
 	type Props = {
-		answers?: AnswerDisplayDto;
+		answers?: WsAnswerDisplayDto | APIAnswerDisplayDto;
 		scaleMinValue?: number;
 		scaleMaxValue?: number;
+		scaleToMax?: boolean;
 	};
 
-	let { answers, scaleMinValue = 1, scaleMaxValue = 10 }: Props = $props();
+	let { answers, scaleMinValue = 1, scaleMaxValue = 10, scaleToMax = true }: Props = $props();
 
 	let incomingData = $derived(answers?.numberResults ?? []);
 	let average = $derived.by(() => {
@@ -86,7 +91,7 @@
 <svelte:window bind:innerHeight={windowHeight} />
 <div
 	bind:this={containerDiv}
-	style="height: {windowHeight - topOffset}px;"
+	style={scaleToMax ? 'height: {windowHeight - topOffset}px;' : ''}
 	class="flex w-full items-center justify-center md:max-w-200">
 	<div class="flex w-full gap-2">
 		<span class="self-end text-lg font-bold">{scaleMinValue}</span>

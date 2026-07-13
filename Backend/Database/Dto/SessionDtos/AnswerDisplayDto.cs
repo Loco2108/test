@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Tapper;
 
 namespace Backend.Dto;
@@ -5,9 +6,13 @@ namespace Backend.Dto;
 [TranspilationSource]
 public class AnswerDisplayDto
 {
+    [Required]
     public List<ChoiceResultDto> ChoiceResults { get; set; } = new();
+    [Required]
     public List<FreeTextResultDto> FreeTextResults { get; set; } = new();
+    [Required]
     public List<WordCloudResultDto> WordCloudResults { get; set; } = new();
+    [Required]
     public List<NumberResultDto> NumberResults { get; set; } = new();
 
     public int TotalParticipantsAnswered { get; set; }
@@ -17,26 +22,27 @@ public class AnswerDisplayDto
 public class ChoiceResultDto
 {
     public required AnswerOptionDto AnswerOption { get; set; }
-    public int Count { get; set; }
+    public required int Count { get; set; }
 }
 
 [TranspilationSource]
 public class FreeTextResultDto
 {
     public required Guid Id { get; set; }
-    public required string Text { get; set; }
+    public required string Text { get; set; } = string.Empty;
 }
 
 [TranspilationSource]
 public class WordCloudResultDto
 {
-    public required string Text { get; set; }
-    public int Count { get; set; }
+    [Required]
+    public required string Text { get; set; } = string.Empty;
+    public required int Count { get; set; }
 }
 
 [TranspilationSource]
 public class NumberResultDto
 {
     public required int Value { get; set; }
-    public int Count { get; set; }
+    public required int Count { get; set; }
 }

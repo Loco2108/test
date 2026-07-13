@@ -227,6 +227,9 @@ namespace Backend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<bool>("RoomActive")
                         .HasColumnType("tinyint(1)");
 

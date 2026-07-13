@@ -359,6 +359,7 @@ namespace Backend.Migrations
                     RoomCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false),
                     RoomActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     CurrentState = table.Column<int>(type: "int", nullable: false),
+                    OpenedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     SurveyId = table.Column<Guid>(type: "char(36)", nullable: false),
                     CurrentQuestionId = table.Column<Guid>(type: "char(36)", nullable: true)
                 },

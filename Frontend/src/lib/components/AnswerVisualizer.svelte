@@ -7,6 +7,7 @@
 	import NumberScaleVisualizer from './NumberScaleVisualizer.svelte';
 	import { Quote } from '@lucide/svelte';
 	import { flip } from 'svelte/animate';
+	import ChoiceVisualizer from './ChoiceVisualizer.svelte';
 
 	type Props = {
 		answers?: AnswerDisplayDto;
@@ -35,40 +36,7 @@
 </div>
 
 {#if questionType === QuestionTypeEnum.SingleChoice || questionType === QuestionTypeEnum.MultipleChoice}
-	{@const totalAnswers = answers?.choiceResults.reduce((acc, curr) => acc + curr.count, 0) ?? 0}
-
-	<div class="flex w-full flex-col gap-4">
-		{#each choiceOptions as item}
-			{@const answerItem = answers?.choiceResults.find(
-				(x) => x.answerOption.id === item.answerOption.id
-			)}
-			{@const percentage =
-				totalAnswers === 0 ? 0 : ((answerItem?.count ?? 0) / totalAnswers) * 100}
-
-			<div>
-				<div class="mb-2 flex items-center gap-2">
-					<span class="text-lg font-bold">
-						{item.answerOption.description}
-					</span>
-
-					<div class="ml-1 badge badge-outline">{answerItem?.count ?? 0}</div>
-				</div>
-
-				<div
-					class="relative min-h-16 w-full overflow-hidden rounded-box bg-base-100 shadow-md">
-					<div
-						class={[
-							'absolute left-0 h-full w-full transition-all',
-							percentage < 33.33 && 'bg-error',
-							percentage >= 33.33 && percentage < 66.66 && 'bg-warning',
-							percentage >= 66.66 && 'bg-success',
-						]}
-						style="transform: translateX(calc(-100% + {percentage}%));">
-					</div>
-				</div>
-			</div>
-		{/each}
-	</div>
+	<ChoiceVisualizer {answers} {choiceOptions} />
 {:else if questionType === QuestionTypeEnum.WordCloud}
 	<WordCloud {answers} />
 {:else if questionType === QuestionTypeEnum.FreeText}

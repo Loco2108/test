@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { AnswerDisplayDto } from '$lib/wsClient/Backend.Dto';
+	import type { AnswerDisplayDto as WsAnswerDisplayDto } from '$lib/wsClient/Backend.Dto';
+	import type { AnswerDisplayDto as APIAnswerDisplayDto } from '$lib/api';
 	import * as d3 from 'd3';
 
 	type Props = {
-		answers?: AnswerDisplayDto;
+		answers?: WsAnswerDisplayDto | APIAnswerDisplayDto;
 	};
 
 	let { answers }: Props = $props();
