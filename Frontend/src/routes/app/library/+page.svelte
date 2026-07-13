@@ -251,9 +251,7 @@
 					{/each}
 				</ul>
 
-				<div class="divider"></div>
 
-				<Pagination numPages={5} currentPage={1} />
 			{:else if activeViewId === 'sessions'}
 				<p>Here will be the Sessions</p>
 			{:else if activeViewId === 'templates'}
