@@ -25,7 +25,7 @@
 			numAnswers += el.count;
 		});
 
-		if (numAnswers === 0) return 0;
+		if (numAnswers === 0) return scaleMinValue;
 		return Math.round((sum / numAnswers) * 10) / 10;
 	});
 	let averageInPercent = $derived(
@@ -86,6 +86,7 @@
 
 	let areaPath = $derived(areaGenerator(chartData) ?? '');
 	let linePath = $derived(lineGenerator(chartData) ?? '');
+	$inspect(averageInPercent);
 </script>
 
 <svelte:window bind:innerHeight={windowHeight} />
