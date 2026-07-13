@@ -208,6 +208,7 @@
 									
 									<Folder size={16} />
 									{f.name}
+									<span class="badge badge-sm ml-auto">Items: {f.surveys?.length ?? 0}</span>
 								</summary>
 								<ul>
 									{#each f.surveys ?? [] as survey (survey.surveyId)}
