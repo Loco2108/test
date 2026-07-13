@@ -10,7 +10,18 @@ using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+var corsString = builder.Configuration["CorsSettings:AllowedOrigins"];
+string[] allowedOrigins = [];
+
+if (!string.IsNullOrWhiteSpace(corsString))
+{
+    allowedOrigins = corsString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+}
+else
+{
+    allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? [];
+}
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<StimmtiDbContext>(options =>
