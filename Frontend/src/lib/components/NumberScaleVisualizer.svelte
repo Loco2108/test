@@ -86,7 +86,6 @@
 
 	let areaPath = $derived(areaGenerator(chartData) ?? '');
 	let linePath = $derived(lineGenerator(chartData) ?? '');
-	$inspect(averageInPercent);
 </script>
 
 <svelte:window bind:innerHeight={windowHeight} />
