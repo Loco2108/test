@@ -93,7 +93,7 @@ public class AnswerService : IAnswerService
                 var wordCloudTemplate = (WordCloudQuestionTemplate)template;
                 if (data.WordCloudAnswers.Count > wordCloudTemplate.MaxWords) return null;
 
-                if (data.WordCloudAnswers.Any(x => string.IsNullOrWhiteSpace(x) || x.Split(" ").Length > 1 || x.Length > 64)) return null;
+                if (data.WordCloudAnswers.Any(x => string.IsNullOrWhiteSpace(x) || x.Trim().Split(" ").Length > 1 || x.Length > 64)) return null;
 
                 foreach (var answer in data.WordCloudAnswers)
                 {

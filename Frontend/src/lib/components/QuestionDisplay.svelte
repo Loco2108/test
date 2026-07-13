@@ -6,6 +6,8 @@
 	import SingleChoice from './SingleChoice.svelte';
 	import LoadingScreen from './LoadingScreen.svelte';
 	import AnswerVisualizer from './AnswerVisualizer.svelte';
+	import { addToast } from './Toast/Toast.svelte';
+	import { TextCursorInput } from '@lucide/svelte';
 
 	type Props = {
 		questionName?: string;
@@ -66,6 +68,16 @@
 				onSubmitAnswer?.(undefined, undefined, undefined, numberScaleValue);
 				break;
 			case QuestionTypeEnum.WordCloud:
+				if (wordCloudValues.some((el) => el.trim().split(' ').length > 1)) {
+					addToast({
+						label: 'Only one word per field allowed',
+						type: 'error',
+						icon: TextCursorInput,
+					});
+
+					return;
+				}
+
 				onSubmitAnswer?.(undefined, wordCloudValues);
 				break;
 			case QuestionTypeEnum.FreeText:
@@ -139,7 +151,7 @@
 		{participantCount} />
 
 	<button
-		class="btn fixed right-4 bottom-4 btn-primary btn-xl"
+		class="btn fixed right-4 bottom-4 shadow btn-primary btn-xl"
 		onclick={() => onNextQuestion?.()}>
 		Continue
 	</button>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { ClassValue } from 'svelte/elements';
 
 	type Props = {

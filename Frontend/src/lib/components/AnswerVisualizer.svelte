@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { AnswerDisplayDto, AnswerOptionDto } from '$lib/wsClient/Backend.Dto';
+	import type { AnswerDisplayDto } from '$lib/wsClient/Backend.Dto';
 	import { QuestionTypeEnum } from '$lib/wsClient/Backend.Models.Enums';
 	import { slide } from 'svelte/transition';
 	import type { Option } from './MultipleChoice.svelte';
 	import WordCloud from './WordCloud.svelte';
-	import NumberScale from './NumberScale.svelte';
 	import NumberScaleVisualizer from './NumberScaleVisualizer.svelte';
+	import { Quote } from '@lucide/svelte';
+	import { flip } from 'svelte/animate';
 
 	type Props = {
 		answers?: AnswerDisplayDto;
@@ -26,11 +27,11 @@
 	}: Props = $props();
 </script>
 
-<div class="mb-16 self-start text-2xl font-bold opacity-50">
-	Participants answered:
-	<div class="ml-1 badge badge-outline badge-lg">{answers?.totalParticipantsAnswered ?? 0}</div>
-	/
-	<div class="ml-1 badge badge-outline badge-lg">{participantCount ?? 0}</div>
+<div class="mb-12 flex items-center gap-2 self-start text-sm text-base-content/50">
+	<span>Participants:</span>
+	<div class="badge badge-outline badge-sm text-base-content/70">
+		{answers?.totalParticipantsAnswered ?? 0} / {participantCount ?? 0}
+	</div>
 </div>
 
 {#if questionType === QuestionTypeEnum.SingleChoice || questionType === QuestionTypeEnum.MultipleChoice}
@@ -71,11 +72,17 @@
 {:else if questionType === QuestionTypeEnum.WordCloud}
 	<WordCloud {answers} />
 {:else if questionType === QuestionTypeEnum.FreeText}
-	<div class="flex max-h-full w-full flex-col gap-2 md:max-w-120">
+	<div class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:max-w-5xl">
 		{#each answers?.freeTextResults ?? [] as answer (answer.id)}
-			<div class="chat-end chat scrollbar-none shadow" in:slide>
-				<div class="chat-bubble chat-bubble-primary whitespace-pre-wrap">
-					{answer.text}
+			<div
+				class="card bg-base-100 text-balance wrap-anywhere text-base-content shadow"
+				in:slide
+				animate:flip={{ duration: 400 }}>
+				<div class="card-body whitespace-pre-wrap">
+					<Quote class="fill-base-content text-base-content/0" />
+					<p class="text-lg leading-relaxed italic">
+						{answer.text}
+					</p>
 				</div>
 			</div>
 		{/each}

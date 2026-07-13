@@ -20,9 +20,12 @@
 			numAnswers += el.count;
 		});
 
+		if (numAnswers === 0) return 0;
 		return Math.round((sum / numAnswers) * 10) / 10;
 	});
-	let averageInPercent = $derived((average / (scaleMaxValue - scaleMinValue)) * 100);
+	let averageInPercent = $derived(
+		((average - scaleMinValue) / (scaleMaxValue - scaleMinValue)) * 100
+	);
 
 	const width = 400;
 	const height = 50;
@@ -95,42 +98,40 @@
 				viewBox="0 0 {width} {height}"
 				preserveAspectRatio="none"
 				class="w-full">
-				<path d={areaPath} stroke="none" class="fill-primary" opacity="0.15" />
+				<path
+					d={areaPath}
+					stroke="none"
+					class="fill-primary transition-all duration-500 ease-out"
+					opacity="0.15" />
 
-				<path d={linePath} fill="none" class="stroke-primary" stroke-width="2" />
+				<path
+					d={linePath}
+					fill="none"
+					class="stroke-primary transition-all duration-500 ease-out"
+					stroke-width="2" />
 			</svg>
 
-			<div class="flex w-full items-center gap-2">
+			<div class="relative flex h-8 w-full items-center">
 				<div
 					class={[
-						'h-4 basis-0 rounded-full transition-all duration-500',
+						'absolute h-4 w-full rounded-full transition-colors duration-500',
 						averageInPercent < 33.33 && 'bg-error',
 						averageInPercent >= 33.33 && averageInPercent < 66.66 && 'bg-warning',
 						averageInPercent >= 66.66 && 'bg-success',
-					]}
-					style="flex-grow: {averageInPercent}">
+					]}>
 				</div>
 
 				<div
 					class={[
-						'flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-sm font-bold shadow-md',
+						'absolute top-1/2 flex items-center justify-center rounded-full border-4 border-base-200 px-3 py-1 text-sm font-bold transition-all duration-500',
 						averageInPercent < 33.33 && 'bg-error text-error-content',
 						averageInPercent >= 33.33 &&
 							averageInPercent < 66.66 &&
 							'bg-warning text-warning-content',
 						averageInPercent >= 66.66 && 'bg-success text-success-content',
-					]}>
-					{average}
-				</div>
-
-				<div
-					class={[
-						'h-4 basis-0 rounded-full transition-all duration-500',
-						averageInPercent < 33.33 && 'bg-error',
-						averageInPercent >= 33.33 && averageInPercent < 66.66 && 'bg-warning',
-						averageInPercent >= 66.66 && 'bg-success',
 					]}
-					style="flex-grow: {100 - averageInPercent}">
+					style="left: {averageInPercent}%; transform: translate(-50%, -50%);">
+					{average}
 				</div>
 			</div>
 		</div>

@@ -125,6 +125,14 @@
 	<div class="navbar border-b border-base-300 bg-base-100 px-4">
 		<div class="navbar-start gap-2">
 			<span class="text-lg font-bold">Stimmti</span>
+
+			<div class={['badge badge-outline', hub.connected ? 'badge-success' : 'badge-error']}>
+				<div
+					aria-label={hub.connected ? 'success' : 'error'}
+					class={['status', hub.connected ? 'status-success' : 'status-error']}>
+				</div>
+				{hub.connected ? 'Connected' : 'Disconnected'}
+			</div>
 		</div>
 		<div class="navbar-center font-bold opacity-80">
 			{hub.state?.sessionName}
