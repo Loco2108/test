@@ -1,8 +1,6 @@
 using Backend.Dto;
 using Backend.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -296,6 +294,21 @@ public class UserController : ControllerBase
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
+
+        if (user.ProfilePictureUrl != null)
+        {
+            var webRootPath = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+
+            var oldFileUri = new Uri(user.ProfilePictureUrl);
+            var oldFileName = Path.GetFileName(oldFileUri.LocalPath);
+
+            var oldFilePath = Path.Combine(webRootPath, "uploads", "avatars", oldFileName);
+
+            if (System.IO.File.Exists(oldFilePath))
+            {
+                System.IO.File.Delete(oldFilePath);
+            }
+        }
 
         var result = await _userManager.DeleteAsync(user);
         if (!result.Succeeded) return BadRequest(result.Errors);

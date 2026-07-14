@@ -24,6 +24,9 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("AnonymousUserId")
+                        .HasColumnType("char(36)");
+
                     b.Property<int>("Body")
                         .HasColumnType("int");
 
@@ -38,7 +41,10 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnonymousProfilePicture");
+                    b.HasIndex("AnonymousUserId")
+                        .IsUnique();
+
+                    b.ToTable("AnonymousProfilePictures");
                 });
 
             modelBuilder.Entity("Backend.Models.AnonymousUser", b =>
@@ -49,22 +55,17 @@ namespace Backend.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("ProfilePictureId")
-                        .HasColumnType("char(36)");
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
 
                     b.Property<Guid>("SessionId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProfilePictureId")
-                        .IsUnique();
-
                     b.HasIndex("SessionId");
 
-                    b.ToTable("AnonymousUser");
+                    b.ToTable("AnonymousUsers");
                 });
 
             modelBuilder.Entity("Backend.Models.Answer", b =>
@@ -88,7 +89,7 @@ namespace Backend.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("Answer");
+                    b.ToTable("Answers");
 
                     b.HasDiscriminator<int>("QuestionTypeId");
 
@@ -101,11 +102,18 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("AnswerId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(2048)
+                        .HasColumnType("varchar(2048)");
 
-                    b.Property<int>("OrderId")
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("OrderNumber")
                         .HasColumnType("int");
 
                     b.Property<Guid>("QuestionTemplateId")
@@ -113,9 +121,11 @@ namespace Backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AnswerId");
+
                     b.HasIndex("QuestionTemplateId");
 
-                    b.ToTable("AnswerOption");
+                    b.ToTable("AnswerOptions");
                 });
 
             modelBuilder.Entity("Backend.Models.Folder", b =>
@@ -157,7 +167,7 @@ namespace Backend.Migrations
 
                     b.HasIndex("SessionId");
 
-                    b.ToTable("Question");
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("Backend.Models.QuestionTemplate", b =>
@@ -167,16 +177,21 @@ namespace Backend.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(2048)
                         .HasColumnType("varchar(2048)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<int>("QuestionType")
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionTypeId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("SurveyId")
@@ -199,8 +214,13 @@ namespace Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("CurrentQuestionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("CurrentState")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(2048)
                         .HasColumnType("varchar(2048)");
 
@@ -209,10 +229,20 @@ namespace Backend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<bool>("RoomActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RoomCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
                     b.Property<Guid>("SurveyId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrentQuestionId");
 
                     b.HasIndex("SurveyId");
 
@@ -480,15 +510,12 @@ namespace Backend.Migrations
                 {
                     b.HasBaseType("Backend.Models.Answer");
 
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.ToTable("Answer", t =>
+                    b.ToTable("Answers", t =>
                         {
                             t.Property("Text")
                                 .HasColumnName("WordCloudAnswer_Text");
@@ -512,6 +539,12 @@ namespace Backend.Migrations
             modelBuilder.Entity("Backend.Models.NumberScaleQuestionTemplate", b =>
                 {
                     b.HasBaseType("Backend.Models.QuestionTemplate");
+
+                    b.Property<int>("MaxValue")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinValue")
+                        .HasColumnType("int");
 
                     b.HasDiscriminator().HasValue(5);
                 });
@@ -551,21 +584,24 @@ namespace Backend.Migrations
                     b.HasDiscriminator().HasValue(1);
                 });
 
-            modelBuilder.Entity("Backend.Models.AnonymousUser", b =>
+            modelBuilder.Entity("Backend.Models.AnonymousProfilePicture", b =>
                 {
-                    b.HasOne("Backend.Models.AnonymousProfilePicture", "ProfilePicture")
-                        .WithOne("AnonymousUser")
-                        .HasForeignKey("Backend.Models.AnonymousUser", "ProfilePictureId")
+                    b.HasOne("Backend.Models.AnonymousUser", "AnonymousUser")
+                        .WithOne("ProfilePicture")
+                        .HasForeignKey("Backend.Models.AnonymousProfilePicture", "AnonymousUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("AnonymousUser");
+                });
+
+            modelBuilder.Entity("Backend.Models.AnonymousUser", b =>
+                {
                     b.HasOne("Backend.Models.Session", "Session")
                         .WithMany("AnonymousParticipants")
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ProfilePicture");
 
                     b.Navigation("Session");
                 });
@@ -591,11 +627,17 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.AnswerOption", b =>
                 {
+                    b.HasOne("Backend.Models.Answer", "Answer")
+                        .WithMany()
+                        .HasForeignKey("AnswerId");
+
                     b.HasOne("Backend.Models.ChoiceQuestionTemplate", "QuestionTemplate")
                         .WithMany("AnswerOptions")
                         .HasForeignKey("QuestionTemplateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Answer");
 
                     b.Navigation("QuestionTemplate");
                 });
@@ -643,11 +685,18 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Session", b =>
                 {
+                    b.HasOne("Backend.Models.Question", "CurrentQuestion")
+                        .WithMany()
+                        .HasForeignKey("CurrentQuestionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Backend.Models.Survey", "Survey")
                         .WithMany("Sessions")
                         .HasForeignKey("SurveyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CurrentQuestion");
 
                     b.Navigation("Survey");
                 });
@@ -732,15 +781,11 @@ namespace Backend.Migrations
                     b.Navigation("AnswerOption");
                 });
 
-            modelBuilder.Entity("Backend.Models.AnonymousProfilePicture", b =>
-                {
-                    b.Navigation("AnonymousUser")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Backend.Models.AnonymousUser", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("ProfilePicture");
                 });
 
             modelBuilder.Entity("Backend.Models.Folder", b =>

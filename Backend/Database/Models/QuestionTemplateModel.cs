@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Backend.Models.Enums;
 
 namespace Backend.Models;
@@ -12,14 +13,26 @@ public abstract class QuestionTemplate
     public required string Name { get; set; }
 
     [MaxLength(2048)]
-    public required string Description { get; set; }
+    public string? Description { get; set; }
 
     public required Guid SurveyId { get; set; }
     public Survey? Survey { get; set; }
 
-    public required QuestionTypeEnum QuestionType { get; set; }
+    [NotMapped]
+    public QuestionTypeEnum QuestionType => this switch
+    {
+        SingleChoiceQuestionTemplate => QuestionTypeEnum.SingleChoice,
+        MultipleChoiceQuestionTemplate => QuestionTypeEnum.MultipleChoice,
+        WordCloudQuestionTemplate => QuestionTypeEnum.WordCloud,
+        FreeTextQuestionTemplate => QuestionTypeEnum.FreeText,
+        NumberScaleQuestionTemplate => QuestionTypeEnum.NumberScale,
+        _ => throw new InvalidOperationException($"Unknown QuestionTemplate type: {GetType().Name}")
+    };
 
     public List<Question> Questions { get; } = new List<Question>();
+
+    public required int OrderNumber { get; set; }
+    public bool IsArchived { get; set; } = false;
 }
 
 public abstract class ChoiceQuestionTemplate : QuestionTemplate
@@ -35,4 +48,8 @@ public class WordCloudQuestionTemplate : QuestionTemplate { }
 
 public class FreeTextQuestionTemplate : QuestionTemplate { }
 
-public class NumberScaleQuestionTemplate : QuestionTemplate { }
+public class NumberScaleQuestionTemplate : QuestionTemplate
+{
+    public int MinValue { get; set; } = 1;
+    public int MaxValue { get; set; } = 10;
+}

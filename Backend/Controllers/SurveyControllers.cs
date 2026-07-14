@@ -20,6 +20,7 @@ public class SurveyController : ControllerBase
 
 	[HttpPost]
 	[Authorize]
+	[ProducesResponseType(typeof(CreateSurveyResponseDto), StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

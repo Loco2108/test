@@ -52,6 +52,20 @@ export interface CreateFolderResponseDto {
   folderId: string;
 }
 
+export interface CreateSessionDto {
+  /** @maxLength 255 */
+  name: string | null;
+  description?: string | null;
+  /** @format uuid */
+  surveyId: string;
+}
+
+export interface CreateSessionResponseDto {
+  name: string | null;
+  description?: string | null;
+  roomCode: string | null;
+}
+
 export interface CreateSurveyDto {
   /** @maxLength 255 */
   title?: string | null;
@@ -73,6 +87,13 @@ export interface GetSurveyResponseDto {
   surveyId: string;
   title: string | null;
   description?: string | null;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
+export interface CreateSurveyResponseDto {
+  /** @format uuid */
+  surveyId: string;
   /** @format uuid */
   folderId?: string | null;
 }
@@ -346,30 +367,16 @@ export class Api<
      * No description
      *
      * @tags Survey
-     * @name V1SurveyList
-     * @request GET:/api/v1/Survey
-     */
-    v1SurveyList: (params: RequestParams = {}) =>
-      this.request<GetSurveyResponseDto[], ProblemDetails>({
-        path: `/api/v1/Survey`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Survey
      * @name V1SurveyCreate
      * @request POST:/api/v1/Survey
      */
     v1SurveyCreate: (data: CreateSurveyDto, params: RequestParams = {}) =>
-      this.request<any, ProblemDetails>({
+      this.request<CreateSurveyResponseDto, ProblemDetails>({
         path: `/api/v1/Survey`,
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
         ...params,
       }),
 
