@@ -26,7 +26,7 @@
 			})
             .then((result) => {
                 if (result.status === 200) {
-                    goto(`/app/sessions/${result.data.roomCode}`);
+                    goto(`/live/${result.data.roomCode}`);
                 }
             })
             .catch((error) => {
