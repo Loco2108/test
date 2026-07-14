@@ -1,4 +1,5 @@
 <script lang="ts">
+    import StartSessionButton from '$lib/components/startSessionButton.svelte';
 	import { goto } from '$app/navigation';
 	import { scrollIntoViewOnMount } from '$lib/actions/scrollaction.js';
 	import type { GetFolderResponseDto, GetSurveyResponseDto } from '$lib/api';
@@ -35,7 +36,6 @@
 	let editingItem = $state<string | null>(null);
 	let draggedSurveyId = $state<string | null>(null);
 	let hoveredFolderId = $state<string | null>(null);
-	let isLibraryStateInitialized = $state(false);
 	let editingSurvey = $derived(
 		surveys.find((s) => s.surveyId === editingItem) ??
 			folder.flatMap((f) => f.surveys ?? []).find((s) => s.surveyId === editingItem) ??
@@ -44,14 +44,11 @@
 	let newSurveyDialogRef: HTMLDialogElement | undefined = $state();
 
 	$effect(() => {
-		if (isLibraryStateInitialized) return;
-
 		surveys = data.surveys.map((survey) => ({ ...survey }));
 		folder = data.folder.map((item) => ({
 			...item,
 			surveys: (item.surveys ?? []).map((survey) => ({ ...survey })),
 		}));
-		isLibraryStateInitialized = true;
 	});
 
 	function snapshotLibraryState() {
@@ -303,7 +300,7 @@
 						class="btn btn-block btn-outline btn-sm btn-secondary"
 						onclick={() => goto(`/app/surveys/${editingSurvey!.surveyId}`)}
 						><Cog size={20} /> Full Settings</button>
-					<button class="btn btn-block btn-primary"><Play /> Start Session </button>
+					<StartSessionButton survey={editingSurvey}  />
 				</div>
 			</div>
 		</div>

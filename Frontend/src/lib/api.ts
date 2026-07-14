@@ -75,6 +75,13 @@ export interface CreateSurveyDto {
   folderId?: string | null;
 }
 
+export interface CreateSurveyResponseDto {
+  /** @format uuid */
+  surveyId: string;
+  /** @format uuid */
+  folderId?: string | null;
+}
+
 export interface GetFolderResponseDto {
   /** @format uuid */
   folderId: string;
@@ -87,13 +94,6 @@ export interface GetSurveyResponseDto {
   surveyId: string;
   title: string | null;
   description?: string | null;
-  /** @format uuid */
-  folderId?: string | null;
-}
-
-export interface CreateSurveyResponseDto {
-  /** @format uuid */
-  surveyId: string;
   /** @format uuid */
   folderId?: string | null;
 }
@@ -120,9 +120,9 @@ export interface UpdateFolderDto {
 
 export interface UpdateSurveyDto {
   /** @maxLength 255 */
-  title: string | null;
+  title?: string | null;
   /** @maxLength 2048 */
-  description: string | null;
+  description?: string | null;
   /** @format uuid */
   folderId?: string | null;
   removeFromFolder?: boolean | null;
@@ -366,6 +366,46 @@ export class Api<
     /**
      * No description
      *
+     * @tags Session
+     * @name V1SessionCreateSessionCreate
+     * @request POST:/api/v1/Session/createSession
+     */
+    v1SessionCreateSessionCreate: (
+      data: CreateSessionDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<CreateSessionResponseDto, ProblemDetails>({
+        path: `/api/v1/Session/createSession`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Session
+     * @name V1SessionCheckSessionList
+     * @request GET:/api/v1/Session/checkSession
+     */
+    v1SessionCheckSessionList: (
+      query?: {
+        roomCode?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/Session/checkSession`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Survey
      * @name V1SurveyCreate
      * @request POST:/api/v1/Survey
@@ -376,6 +416,21 @@ export class Api<
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyList
+     * @request GET:/api/v1/Survey
+     */
+    v1SurveyList: (params: RequestParams = {}) =>
+      this.request<GetSurveyResponseDto[], ProblemDetails>({
+        path: `/api/v1/Survey`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -404,21 +459,6 @@ export class Api<
      * No description
      *
      * @tags Survey
-     * @name V1SurveyFoldersList
-     * @request GET:/api/v1/Survey/folders
-     */
-    v1SurveyFoldersList: (params: RequestParams = {}) =>
-      this.request<GetFolderResponseDto[], ProblemDetails>({
-        path: `/api/v1/Survey/folders`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Survey
      * @name V1SurveyFoldersCreate
      * @request POST:/api/v1/Survey/folders
      */
@@ -431,6 +471,21 @@ export class Api<
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Survey
+     * @name V1SurveyFoldersList
+     * @request GET:/api/v1/Survey/folders
+     */
+    v1SurveyFoldersList: (params: RequestParams = {}) =>
+      this.request<GetFolderResponseDto[], ProblemDetails>({
+        path: `/api/v1/Survey/folders`,
+        method: "GET",
         format: "json",
         ...params,
       }),
