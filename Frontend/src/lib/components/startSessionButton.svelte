@@ -17,9 +17,9 @@
 
     let isLoading = $state(false);
 
-    async function startSession() {
+    function startSession() {
         isLoading = true;
-        await apiClient.api
+        apiClient.api
             .v1SessionCreateSessionCreate({
 				surveyId: survey?.surveyId,
 				name: survey?.title,
@@ -36,7 +36,7 @@
                     icon: HeartCrack,
                 });
             })
-            .then(() => {
+            .finally(() => {
                 isLoading = false;
             });
     }
