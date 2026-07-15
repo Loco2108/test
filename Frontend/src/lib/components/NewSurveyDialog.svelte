@@ -47,6 +47,29 @@
 
 
 		
+	function createSurvey() {
+		isLoading = true;
+		
+		apiClient.api
+			.v1SurveyCreate({
+				title,
+				description,
+			})
+			.then((result) => {
+				if (result.status === 200) {
+					goto(`/app/surveys/${result.data.surveyId}`);
+				}
+			})
+			.catch((error) => {
+				addToast({
+					type: 'error',
+					label: `Survey Creation ran Into an error: ${error.message}`,
+					icon: HeartCrack,
+				});
+			})
+			.finally(() => {
+			    isLoading = false;
+			});
 	}
 </script>
 
