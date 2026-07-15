@@ -130,6 +130,21 @@ export interface GetSurveyResponseDto {
   description?: string | null;
   /** @format uuid */
   folderId?: string | null;
+export interface GetStatisticsDto {
+  /** @format int32 */
+  surveyCount: number;
+  /** @format int32 */
+  surveyDelta: number;
+  /** @format int32 */
+  sessionCount: number;
+  /** @format int32 */
+  sessionDelta: number;
+  /** @format int32 */
+  participantCount: number;
+  /** @format int32 */
+  participantDelta: number;
+  surveyStatistics?: SurveyStatisticsDto[] | null;
+  sessionStatistics?: SessionStatisticsDto[] | null;
 }
 
 export interface IdentityError {
@@ -167,6 +182,20 @@ export interface UpdateSurveyDto {
   /** @format uuid */
   folderId?: string | null;
   removeFromFolder?: boolean | null;
+}
+
+export interface SessionStatisticsDto {
+  name: string | null;
+  /** @format int32 */
+  participantCount: number;
+  /** @format date-time */
+  openedAt: string;
+}
+
+export interface SurveyStatisticsDto {
+  name: string | null;
+  /** @format int32 */
+  numSessions: number;
 }
 
 export interface UserAuthDto {
@@ -467,6 +496,41 @@ export class Api<
     ) =>
       this.request<SessionResultDto, ProblemDetails>({
         path: `/api/v1/Session/session`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Statistics
+     * @name V1StatisticsStatisticsList
+     * @request GET:/api/v1/Statistics/statistics
+     */
+    v1StatisticsStatisticsList: (
+      query?: {
+        /**
+         * @format int32
+         * @default 10
+         */
+        pageSize?: number;
+        /**
+         * @format int32
+         * @default 1
+         */
+        currentSurveyPage?: number;
+        /**
+         * @format int32
+         * @default 1
+         */
+        currentSessionPage?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<GetStatisticsDto, ProblemDetails>({
+        path: `/api/v1/Statistics/statistics`,
         method: "GET",
         query: query,
         format: "json",
