@@ -21,9 +21,9 @@
 	let tabs: Tab = $state('general');
 
 	const bugReportUrl =
-		'https://github.com/Moldybot9411/stimmti/issues/new?template=bug_report.yml';
+		'https://github.com/Loco2108/test/issues/new?template=bug_report.yml&labels=bug,from_user&title=%5BBug%5D%20';
 	const feedbackUrl =
-		'https://github.com/Moldybot9411/stimmti/issues/new?template=feedback.yml';
+		'https://github.com/Loco2108/test/issues/new?template=feedback.yml&labels=feedback,from_user&title=%5BFeedback%5D%20';
 
 	const faq: Record<Tab, FaqItem[]> = {
 		general: [
