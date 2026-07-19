@@ -11,3 +11,4 @@ contact_links:
   - name: Privacy Policy
     url: https://github.com/Loco2108/test/blob/main/Frontend/src/routes/privacypolicy/+page.svelte
     about: Read how data and privacy are handled in this project.
+    

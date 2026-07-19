@@ -21,7 +21,7 @@
 	let tabs: Tab = $state('general');
 
 	const bugReportUrl =
-		'https://github.com/Loco2108/test/issues/new?template=bug_report.yml&labels=bug,from_user&title=%5BBug%5D%20';
+		'https://github.com/Loco2108/test/issues/new?template=bug_report.yml';
 	const feedbackUrl =
 		'https://github.com/Loco2108/test/issues/new?template=feedback.yml&labels=feedback,from_user&title=%5BFeedback%5D%20';
 
