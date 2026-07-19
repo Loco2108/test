@@ -130,6 +130,8 @@ export interface GetSurveyResponseDto {
   description?: string | null;
   /** @format uuid */
   folderId?: string | null;
+}
+
 export interface GetStatisticsDto {
   /** @format int32 */
   surveyCount: number;
