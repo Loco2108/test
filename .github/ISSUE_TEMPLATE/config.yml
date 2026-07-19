@@ -7,8 +7,7 @@ contact_links:
   - name: General Support Request
     url: https://github.com/Loco2108/test/issues/new?template=feedback.yml
     about: Use this for non-bug questions, suggestions, or general help.
-
+#hallo
   - name: Privacy Policy
     url: https://github.com/Loco2108/test/blob/main/Frontend/src/routes/privacypolicy/+page.svelte
     about: Read how data and privacy are handled in this project.
-    
